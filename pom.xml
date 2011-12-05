@@ -1,0 +1,31 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jvnet.hudson.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <!-- which version of Hudson is this plugin built against? -->
+        <version>1.381</version>
+    </parent>
+    <artifactId>antexec</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <!--<version>0.9b1</version>-->
+    <packaging>hpi</packaging>
+    <name>AntExec</name>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <developers>
+        <developer>
+            <id>svasek@gmail.com</id>
+            <name>Milos Svasek</name>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>The MIT license</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+</project>
