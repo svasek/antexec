@@ -23,7 +23,7 @@ THE SOFTWARE.
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <f:section title="${%AntExec Builder$}">
+    <f:section title="${%AntExec Builder}">
         <f:entry title="${%Use Ant-Contrib tasks}"
                  description="${%Enabling Ant-Contrib tasks}"
                  help="/plugin/antexec/help-globalConfig.html">

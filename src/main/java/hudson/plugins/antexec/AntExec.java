@@ -25,8 +25,7 @@ package hudson.plugins.antexec;
 
 import hudson.*;
 import hudson.model.*;
-import hudson.tasks.Ant;
-import hudson.tasks.Messages;
+//TODO: Change this:  dependency on hudson.tasks._ant.AntConsoleAnnotator
 import hudson.tasks._ant.AntConsoleAnnotator;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
@@ -93,16 +92,16 @@ public class AntExec extends Builder {
 
         if ((!env.get("ANT_HOME").isEmpty()) && (new File(env.get("ANT_HOME"), antExe).exists()) && (new File(env.get("ANT_HOME"), "lib/ant.jar").exists()) && (new File(env.get("ANT_HOME"), antExe).canExecute())) {
             antHomeUse = new File(env.get("ANT_HOME"));
-            listener.getLogger().println("Found usable ANT_HOME in environment variables: \"" + antHomeUse.getAbsolutePath() + "\"");
+            listener.getLogger().println(Messages.AntExec_AntHomeEnvVarFound(antHomeUse));
         } else {
-            listener.getLogger().println("Usable ANT_HOME has not been found in environment variables.");
+            listener.getLogger().println(Messages.AntExec_AntHomeEnvVarNotFound());
         }
 
         if ((!antHome.isEmpty()) && (new File(antHome, antExe).exists()) && (new File(antHome, "lib/ant.jar").exists()) && new File(antHome, antExe).canExecute()) {
             antHomeUse = new File(antHome);
-            listener.getLogger().println("You have specified ANT_HOME in setup of build step. Forcing it to: \"" + antHomeUse.getAbsolutePath() + "\"");
+            listener.getLogger().println(Messages._AntExec_AntHomeReplacing(antHomeUse));
             env.put("ANT_HOME", antHomeUse.getAbsolutePath());
-            listener.getLogger().println("WARNING: Environment variable ANT_HOME has been changed !!!");
+            listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_HOME", antHomeUse));
         }
 
 
@@ -118,13 +117,12 @@ public class AntExec extends Builder {
 
         if (antOpts != null) {
             env.put("ANT_OPTS", env.expand(antOpts));
-            //args.add(env.expand(antOpts));
-            listener.getLogger().println("Environment variable ANT_OPTS has been changed to: " + antOpts);
+            listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_OPTS", antOpts));
         }
 
         // Get and prepare ant-contrib.jar
         if (getDescriptor().useAntContrib()) {
-            listener.getLogger().println("Use Ant core & ant-contrib tasks!");
+            listener.getLogger().println(Messages.AntExec_UseAntContribTasks());
             URL urlAntContrib = new URL(env.get("HUDSON_URL") + "plugin/" + myName + "/lib/ant-contrib.jar");
             FilePath antLibDir = new FilePath(build.getWorkspace(), "antlib");
             FilePath antContribJar = new FilePath(antLibDir, "ant-contrib.jar");
@@ -132,7 +130,7 @@ public class AntExec extends Builder {
             antContribJar.copyFrom(urlAntContrib);
             args.add("-lib", antLibDir.getName());
         } else {
-            listener.getLogger().println("Use Ant core tasks only!");
+            listener.getLogger().println(Messages.AntExec_UseAntCoreTasksOnly());
         }
 
         if (!launcher.isUnix()) {
@@ -166,7 +164,7 @@ public class AntExec extends Builder {
             return r == 0;
         } catch (IOException e) {
             Util.displayIOException(e, listener);
-            String errorMessage = Messages.Ant_ExecFailed() + "Maybe you need to set path to the Ant home, or environment variable ANT_HOME to proper directory.";
+            String errorMessage = Messages.AntExec_ExecFailed() + Messages.AntExec_ProjectConfigNeeded();
             e.printStackTrace(listener.fatalError(errorMessage));
             return false;
         }
@@ -192,17 +190,17 @@ public class AntExec extends Builder {
                 return FormValidation.ok();
 
             if (value.length() == 0)
-                return FormValidation.error("Please set Ant home directory!");
+                return FormValidation.error(Messages.AntExec_AntHomeValidation());
 
             if (value.getPath().equals(""))
                 return FormValidation.ok();
 
             if (!value.isDirectory())
-                return FormValidation.error(Messages.Ant_NotADirectory(value));
+                return FormValidation.error(Messages.AntExec_NotADirectory(value));
 
             File antJar = new File(value, "lib/ant.jar");
             if (!antJar.exists())
-                return FormValidation.error(Messages.Ant_NotAntDirectory(value));
+                return FormValidation.error(Messages.AntExec_NotAntDirectory(value));
 
             return FormValidation.ok();
         }
@@ -213,7 +211,7 @@ public class AntExec extends Builder {
         }
 
         public String getDisplayName() {
-            return "Execute Apache Ant";
+            return hudson.plugins.antexec.Messages.AntExec_DisplayName();
         }
 
         @Override

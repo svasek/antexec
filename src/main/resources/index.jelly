@@ -22,5 +22,5 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
 <div>
-    This plugin allows Hudson to execute one Apache Ant target written directly to the Hudson as build step.
+    This plugin allows Hudson/Jenkins to execute one "Apache Ant target" written directly into the Hudson as build step.
 </div>
