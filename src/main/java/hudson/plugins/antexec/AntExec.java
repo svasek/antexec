@@ -101,7 +101,7 @@ public class AntExec extends Builder {
             antHomeUse = new File(antHome);
             listener.getLogger().println(Messages._AntExec_AntHomeReplacing(antHomeUse));
             env.put("ANT_HOME", antHomeUse.getAbsolutePath());
-            listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_HOME", antHomeUse));
+            listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_HOME", antHomeUse.getAbsolutePath()));
         }
 
 
@@ -117,7 +117,7 @@ public class AntExec extends Builder {
 
         if (antOpts != null) {
             env.put("ANT_OPTS", env.expand(antOpts));
-            listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_OPTS", antOpts));
+            listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_OPTS", env.expand(antOpts)));
         }
 
         // Get and prepare ant-contrib.jar
@@ -144,13 +144,13 @@ public class AntExec extends Builder {
 
         // Debug //
         listener.getLogger().println();
-        listener.getLogger().println("Content of scriptSource text area --- begin ---");
+        listener.getLogger().println(Messages.AntExec_DebugScriptSourceFieldBegin());
         listener.getLogger().println(scriptSource);
-        listener.getLogger().println("Content of scriptSource text area ---- end ----");
+        listener.getLogger().println(Messages.AntExec_DebugScriptSourceFieldEnd());
         listener.getLogger().println();
-        listener.getLogger().println("Content of properties text area --- begin ---");
+        listener.getLogger().println(Messages.AntExec_DebugPropertiesFieldBegin());
         listener.getLogger().println(properties);
-        listener.getLogger().println("Content of properties text area ---- end ----");
+        listener.getLogger().println(Messages.AntExec_DebugPropertiesFieldEnd());
         listener.getLogger().println();
 
         try {
