@@ -135,7 +135,8 @@ public class AntExec extends Builder {
         File antHomeUse = null;
 
         //Setup ANT_HOME from Environment or job configuration screen
-        if ((!env.get("ANT_HOME").isEmpty()) && (new File(env.get("ANT_HOME"), antExe).exists()) && (new File(env.get("ANT_HOME"), "lib/ant.jar").exists()) && (new File(env.get("ANT_HOME"), antExe).canExecute())) {
+        /* Java 1.6: if ((!env.get("ANT_HOME").isEmpty()) && (new File(env.get("ANT_HOME"), antExe).exists()) && (new File(env.get("ANT_HOME"), "lib/ant.jar").exists()) && (new File(env.get("ANT_HOME"), antExe).canExecute())) */
+        if ((env.get("ANT_HOME") != null) && !(env.get("ANT_HOME").length() > 0) && (new File(env.get("ANT_HOME"), antExe).exists()) && (new File(env.get("ANT_HOME"), "lib/ant.jar").exists()) && (new File(env.get("ANT_HOME"), antExe).isFile())) {
             antHomeUse = new File(env.get("ANT_HOME"));
             if (verbose != null && verbose)
                 listener.getLogger().println(Messages.AntExec_AntHomeEnvVarFound(antHomeUse));
@@ -144,7 +145,8 @@ public class AntExec extends Builder {
         }
 
         //Forcing configured ANT_HOME in Environment
-        if ((!antHome.isEmpty()) && (new File(antHome, antExe).exists()) && (new File(antHome, "lib/ant.jar").exists()) && new File(antHome, antExe).canExecute()) {
+        /* Java 1.6: if ((!antHome.isEmpty()) && (new File(antHome, antExe).exists()) && (new File(antHome, "lib/ant.jar").exists()) && new File(antHome, antExe).canExecute()) {*/
+        if ((env.get("ANT_HOME") != null) && !(env.get("ANT_HOME").length() > 0) && (new File(antHome, antExe).exists()) && (new File(antHome, "lib/ant.jar").exists()) && new File(antHome, antExe).isFile()) {
             if (antHomeUse != null) {
                 listener.getLogger().println(Messages._AntExec_AntHomeReplacing(antHomeUse.getAbsolutePath(), antHome));
             } else {
@@ -298,4 +300,3 @@ public class AntExec extends Builder {
         return buildFile;
     }
 }
-

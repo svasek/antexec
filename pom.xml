@@ -33,4 +33,21 @@
         <developerConnection>scm:git:ssh://git@github.com/svasek/antexec.git</developerConnection>
         <url>https://github.com/svasek/antexec</url>
     </scm>
+    <build>
+        <plugins><plugin>
+          <!-- Make sure our code doesn't have 1.6 dependencies except where we know it -->
+          <!-- To check compatibility with Java 1.5 run: mvn compile animal-sniffer:check -->
+          <groupId>org.jvnet</groupId>
+          <artifactId>animal-sniffer</artifactId>
+          <version>1.2</version>
+          <configuration>
+            <signature>
+              <groupId>org.jvnet.animal-sniffer</groupId>
+              <artifactId>java1.5</artifactId>
+              <version>1.0</version>
+            </signature>
+          </configuration>
+        </plugin>
+        </plugins>
+    </build>
 </project>
