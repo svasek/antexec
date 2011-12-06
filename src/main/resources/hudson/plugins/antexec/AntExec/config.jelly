@@ -31,17 +31,20 @@ THE SOFTWARE.
         <f:entry title="${%Properties}" field="properties" help="/help/ant/ant-properties.html">
             <f:textarea name="antexec.properties" value="${instance.properties}"/>
         </f:entry>
-        <f:entry title="ANT_HOME" field="antHome">
-            <f:textbox name="antexec.antHome" value="${instance.antHome}"/>
-        </f:entry>
-        <f:entry title="${%Java Options}" field="antOpts">
-            <f:expandableTextbox name="antexec.antOpts" value="${instance.antOpts}"/>
-        </f:entry>
-        <f:entry title="${%Verbose mode}" field="verbose" description="${%Enabling verbose output}">
-            <f:checkbox name="antexec.verbose" checked="${instance.verbose}"/>
-        </f:entry>
-        <f:entry title="${%Emacs mode}" field="emacs" description="${%Enabling logging information without adornments}">
-            <f:checkbox name="antexec.emacs" checked="${instance.emacs}"/>
-        </f:entry>
+        <f:advanced>
+            <f:entry title="ANT_HOME" field="antHome">
+                <f:textbox name="antexec.antHome" value="${instance.antHome}"/>
+            </f:entry>
+            <f:entry title="${%Java Options}" field="antOpts">
+                <f:expandableTextbox name="antexec.antOpts" value="${instance.antOpts}"/>
+            </f:entry>
+            <f:entry title="${%Verbose mode}" field="verbose" description="${%Enabling verbose output}">
+                <f:checkbox name="antexec.verbose" checked="${instance.verbose}"/>
+            </f:entry>
+            <f:entry title="${%Emacs mode}" field="emacs"
+                     description="${%Enabling logging information without adornments}">
+                <f:checkbox name="antexec.emacs" checked="${instance.emacs}"/>
+            </f:entry>
+        </f:advanced>
     </f:advanced>
 </j:jelly>
