@@ -57,15 +57,17 @@ public class AntExec extends Builder {
     private String antHome;
     private String antOpts;
     private Boolean verbose;
+    private Boolean emacs;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public AntExec(String scriptSource, String properties, String antHome, String antOpts, Boolean verbose) {
+    public AntExec(String scriptSource, String properties, String antHome, String antOpts, Boolean verbose, Boolean emacs) {
         this.scriptSource = scriptSource;
         this.properties = properties;
         this.antHome = antHome;
         this.antOpts = antOpts;
         this.verbose = verbose;
+        this.emacs = emacs;
     }
 
     /**
@@ -112,6 +114,15 @@ public class AntExec extends Builder {
      */
     public Boolean getVerbose() {
         return verbose;
+    }
+
+    /**
+     * Returns checkbox boolean from job configuration screen
+     *
+     * @return Boolean verbose
+     */
+    public Boolean getEmacs() {
+        return emacs;
     }
 
     @Override
@@ -170,11 +181,14 @@ public class AntExec extends Builder {
             antContribJar.copyFrom(urlAntContrib);
             args.add("-lib", antLibDir.getName());
         } else {
-            if (verbose!=null && verbose) listener.getLogger().println(Messages.AntExec_UseAntCoreTasksOnly());
+            if (verbose != null && verbose) listener.getLogger().println(Messages.AntExec_UseAntCoreTasksOnly());
         }
 
-        //Add Ant verbose option:
+        //Add Ant option: -verbose
         if (verbose != null && verbose) args.add("-verbose");
+
+        //Add Ant option: -emacs
+        if (emacs != null && emacs) args.add("-emacs");
 
         //Fixing command line for windows
         if (!launcher.isUnix()) {
@@ -238,9 +252,6 @@ public class AntExec extends Builder {
 
             if (value.length() == 0)
                 return FormValidation.error(Messages.AntExec_AntHomeValidation());
-
-            if (value.getPath().equals(""))
-                return FormValidation.ok();
 
             if (!value.isDirectory())
                 return FormValidation.error(Messages.AntExec_NotADirectory(value));
