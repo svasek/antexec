@@ -160,6 +160,9 @@ public class AntExec extends Builder {
         FilePath buildFile = makeBuildFile(scriptSource, new FilePath(build.getWorkspace(), "antexec_build.xml"));
         args.add(antExeFile);
 
+        //Make archive copy of build file to job directory
+        makeBuildFile(scriptSource, new FilePath(build.getWorkspace(), "../builds/" + build.getId() + "/antexec_build.xml"));
+
         args.add("-file", buildFile.getName());
         VariableResolver<String> vr = build.getBuildVariableResolver();
         Set<String> sensitiveVars = build.getSensitiveBuildVariables();
