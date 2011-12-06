@@ -28,4 +28,9 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    <scm>
+        <connection>scm:git:git://github.com/svasek/antexec.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/svasek/antexec.git</developerConnection>
+        <url>https://github.com/svasek/antexec</url>
+    </scm>
 </project>
