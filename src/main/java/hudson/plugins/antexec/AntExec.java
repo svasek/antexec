@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2011, Milos Svasek
+ * Copyright (c) 2011, Milos Svasek, Kohsuke Kawaguchi, etc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -68,22 +68,48 @@ public class AntExec extends Builder {
         this.verbose = verbose;
     }
 
+    /**
+     * Returns content of text area with script source from job configuration screen
+     *
+     * @return String scriptSource
+     */
     public String getScriptSource() {
         return scriptSource;
     }
 
+    /**
+     * Returns content of text field with properties from job configuration screen
+     *
+     * @return String properties
+     */
     public String getProperties() {
         return properties;
     }
 
+    /**
+     * Returns content of text field with ANT_HOME from job configuration screen
+     *
+     * @return String antHome
+     */
     public String getAntHome() {
         return antHome;
     }
 
+    /**
+     * Returns content of text field with java/ant options from job configuration screen.
+     * It will be used for ANT_OPTS environment variable
+     *
+     * @return String antOpts
+     */
     public String getAntOpts() {
         return antOpts;
     }
 
+    /**
+     * Returns checkbox boolean from job configuration screen
+     *
+     * @return Boolean verbose
+     */
     public Boolean getVerbose() {
         return verbose;
     }
@@ -93,24 +119,32 @@ public class AntExec extends Builder {
         ArgumentListBuilder args = new ArgumentListBuilder();
         EnvVars env = build.getEnvironment(listener);
 
+        //Setup executable of ant deppending on platform
         String antExe = launcher.isUnix() ? "bin/ant" : "bin/ant.bat";
         File antHomeUse = null;
 
+        //Setup ANT_HOME from Environment or job configuration screen
         if ((!env.get("ANT_HOME").isEmpty()) && (new File(env.get("ANT_HOME"), antExe).exists()) && (new File(env.get("ANT_HOME"), "lib/ant.jar").exists()) && (new File(env.get("ANT_HOME"), antExe).canExecute())) {
             antHomeUse = new File(env.get("ANT_HOME"));
-            if (verbose!=null && verbose) listener.getLogger().println(Messages.AntExec_AntHomeEnvVarFound(antHomeUse));
+            if (verbose != null && verbose)
+                listener.getLogger().println(Messages.AntExec_AntHomeEnvVarFound(antHomeUse));
         } else {
-            if (verbose!=null && verbose) listener.getLogger().println(Messages.AntExec_AntHomeEnvVarNotFound());
+            if (verbose != null && verbose) listener.getLogger().println(Messages.AntExec_AntHomeEnvVarNotFound());
         }
 
+        //Forcing configured ANT_HOME in Environment
         if ((!antHome.isEmpty()) && (new File(antHome, antExe).exists()) && (new File(antHome, "lib/ant.jar").exists()) && new File(antHome, antExe).canExecute()) {
-            listener.getLogger().println(Messages._AntExec_AntHomeReplacing(antHomeUse.getAbsolutePath(), antHome));
+            if (antHomeUse != null) {
+                listener.getLogger().println(Messages._AntExec_AntHomeReplacing(antHomeUse.getAbsolutePath(), antHome));
+            } else {
+                listener.getLogger().println(Messages._AntExec_AntHomeReplacing("", antHome));
+            }
             antHomeUse = new File(antHome);
             env.put("ANT_HOME", antHomeUse.getAbsolutePath());
             listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_HOME", antHomeUse.getAbsolutePath()));
         }
 
-
+        //Create Ant build.xml file
         File antExeFile = new File(antHomeUse, antExe);
         FilePath buildFile = makeBuildFile(scriptSource, new FilePath(build.getWorkspace(), "antexec_build.xml"));
         args.add(antExeFile);
@@ -126,9 +160,9 @@ public class AntExec extends Builder {
             listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_OPTS", env.expand(antOpts)));
         }
 
-        // Get and prepare ant-contrib.jar
+        //Get and prepare ant-contrib.jar
         if (getDescriptor().useAntContrib()) {
-            if (verbose!=null && verbose) listener.getLogger().println(Messages.AntExec_UseAntContribTasks());
+            if (verbose != null && verbose) listener.getLogger().println(Messages.AntExec_UseAntContribTasks());
             URL urlAntContrib = new URL(env.get("HUDSON_URL") + "plugin/" + myName + "/lib/ant-contrib.jar");
             FilePath antLibDir = new FilePath(build.getWorkspace(), "antlib");
             FilePath antContribJar = new FilePath(antLibDir, "ant-contrib.jar");
@@ -139,9 +173,10 @@ public class AntExec extends Builder {
             if (verbose!=null && verbose) listener.getLogger().println(Messages.AntExec_UseAntCoreTasksOnly());
         }
 
-        // Add Ant verbose option:
-        if (verbose!=null && verbose) args.add("-verbose");
+        //Add Ant verbose option:
+        if (verbose != null && verbose) args.add("-verbose");
 
+        //Fixing command line for windows
         if (!launcher.isUnix()) {
             args = args.toWindowsCommand();
             // For some reason, ant on windows rejects empty parameters but unix does not.
@@ -151,8 +186,8 @@ public class AntExec extends Builder {
             args = new ArgumentListBuilder(newArgs.toArray(new String[newArgs.size()]));
         }
 
-        // Debug //
-        if (verbose!=null && verbose) {
+        //Content of scriptSource and properties (only if verbose is true
+        if (verbose != null && verbose) {
             listener.getLogger().println();
             listener.getLogger().println(Messages.AntExec_DebugScriptSourceFieldBegin());
             listener.getLogger().println(scriptSource);
@@ -195,6 +230,7 @@ public class AntExec extends Builder {
             load();
         }
 
+        //ANT_HOME job configuration field validation
         public FormValidation doCheckAntHome(@QueryParameter File value) {
             // this can be used to check the existence of a file on the server, so needs to be protected
             if (!Hudson.getInstance().hasPermission(Hudson.ADMINISTER))
