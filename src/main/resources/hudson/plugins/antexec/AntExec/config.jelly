@@ -37,5 +37,8 @@ THE SOFTWARE.
         <f:entry title="${%Java Options}" field="antOpts">
             <f:expandableTextbox name="antexec.antOpts" value="${instance.antOpts}"/>
         </f:entry>
+        <f:entry title="${%Verbose mode}" field="verbose" description="${%Enabling verbose output}">
+            <f:checkbox name="antexec.verbose" checked="${instance.verbose}"/>
+        </f:entry>
     </f:advanced>
 </j:jelly>

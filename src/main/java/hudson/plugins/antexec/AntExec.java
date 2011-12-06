@@ -56,14 +56,16 @@ public class AntExec extends Builder {
     private String properties;
     private String antHome;
     private String antOpts;
+    private Boolean verbose;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public AntExec(String scriptSource, String properties, String antHome, String antOpts) {
+    public AntExec(String scriptSource, String properties, String antHome, String antOpts, Boolean verbose) {
         this.scriptSource = scriptSource;
         this.properties = properties;
         this.antHome = antHome;
         this.antOpts = antOpts;
+        this.verbose = verbose;
     }
 
     public String getScriptSource() {
@@ -82,6 +84,10 @@ public class AntExec extends Builder {
         return antOpts;
     }
 
+    public Boolean getVerbose() {
+        return verbose;
+    }
+
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
@@ -92,14 +98,14 @@ public class AntExec extends Builder {
 
         if ((!env.get("ANT_HOME").isEmpty()) && (new File(env.get("ANT_HOME"), antExe).exists()) && (new File(env.get("ANT_HOME"), "lib/ant.jar").exists()) && (new File(env.get("ANT_HOME"), antExe).canExecute())) {
             antHomeUse = new File(env.get("ANT_HOME"));
-            listener.getLogger().println(Messages.AntExec_AntHomeEnvVarFound(antHomeUse));
+            if (verbose!=null && verbose) listener.getLogger().println(Messages.AntExec_AntHomeEnvVarFound(antHomeUse));
         } else {
-            listener.getLogger().println(Messages.AntExec_AntHomeEnvVarNotFound());
+            if (verbose!=null && verbose) listener.getLogger().println(Messages.AntExec_AntHomeEnvVarNotFound());
         }
 
         if ((!antHome.isEmpty()) && (new File(antHome, antExe).exists()) && (new File(antHome, "lib/ant.jar").exists()) && new File(antHome, antExe).canExecute()) {
+            listener.getLogger().println(Messages._AntExec_AntHomeReplacing(antHomeUse.getAbsolutePath(), antHome));
             antHomeUse = new File(antHome);
-            listener.getLogger().println(Messages._AntExec_AntHomeReplacing(antHomeUse));
             env.put("ANT_HOME", antHomeUse.getAbsolutePath());
             listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_HOME", antHomeUse.getAbsolutePath()));
         }
@@ -122,7 +128,7 @@ public class AntExec extends Builder {
 
         // Get and prepare ant-contrib.jar
         if (getDescriptor().useAntContrib()) {
-            listener.getLogger().println(Messages.AntExec_UseAntContribTasks());
+            if (verbose!=null && verbose) listener.getLogger().println(Messages.AntExec_UseAntContribTasks());
             URL urlAntContrib = new URL(env.get("HUDSON_URL") + "plugin/" + myName + "/lib/ant-contrib.jar");
             FilePath antLibDir = new FilePath(build.getWorkspace(), "antlib");
             FilePath antContribJar = new FilePath(antLibDir, "ant-contrib.jar");
@@ -130,8 +136,11 @@ public class AntExec extends Builder {
             antContribJar.copyFrom(urlAntContrib);
             args.add("-lib", antLibDir.getName());
         } else {
-            listener.getLogger().println(Messages.AntExec_UseAntCoreTasksOnly());
+            if (verbose!=null && verbose) listener.getLogger().println(Messages.AntExec_UseAntCoreTasksOnly());
         }
+
+        // Add Ant verbose option:
+        if (verbose!=null && verbose) args.add("-verbose");
 
         if (!launcher.isUnix()) {
             args = args.toWindowsCommand();
@@ -143,15 +152,17 @@ public class AntExec extends Builder {
         }
 
         // Debug //
-        listener.getLogger().println();
-        listener.getLogger().println(Messages.AntExec_DebugScriptSourceFieldBegin());
-        listener.getLogger().println(scriptSource);
-        listener.getLogger().println(Messages.AntExec_DebugScriptSourceFieldEnd());
-        listener.getLogger().println();
-        listener.getLogger().println(Messages.AntExec_DebugPropertiesFieldBegin());
-        listener.getLogger().println(properties);
-        listener.getLogger().println(Messages.AntExec_DebugPropertiesFieldEnd());
-        listener.getLogger().println();
+        if (verbose!=null && verbose) {
+            listener.getLogger().println();
+            listener.getLogger().println(Messages.AntExec_DebugScriptSourceFieldBegin());
+            listener.getLogger().println(scriptSource);
+            listener.getLogger().println(Messages.AntExec_DebugScriptSourceFieldEnd());
+            listener.getLogger().println();
+            listener.getLogger().println(Messages.AntExec_DebugPropertiesFieldBegin());
+            listener.getLogger().println(properties);
+            listener.getLogger().println(Messages.AntExec_DebugPropertiesFieldEnd());
+            listener.getLogger().println();
+        }
 
         try {
             AntConsoleAnnotator aca = new AntConsoleAnnotator(listener.getLogger(), build.getCharset());
@@ -201,7 +212,6 @@ public class AntExec extends Builder {
             File antJar = new File(value, "lib/ant.jar");
             if (!antJar.exists())
                 return FormValidation.error(Messages.AntExec_NotAntDirectory(value));
-
             return FormValidation.ok();
         }
 
@@ -211,7 +221,7 @@ public class AntExec extends Builder {
         }
 
         public String getDisplayName() {
-            return hudson.plugins.antexec.Messages.AntExec_DisplayName();
+            return Messages.AntExec_DisplayName();
         }
 
         @Override
@@ -228,8 +238,8 @@ public class AntExec extends Builder {
 
     private static FilePath makeBuildFile(String targetSource, FilePath buildFile) throws IOException, InterruptedException {
         StringBuilder sb = new StringBuilder();
-        sb.append("<project default=\"AntExec_Build_Step\" xmlns:antcontrib=\"antlib:net.sf.antcontrib\" basedir=\".\">\n");
-        sb.append("<target name=\"AntExec_Build_Step\">\n\n");
+        sb.append("<project default=\"AntExec_Builder\" xmlns:antcontrib=\"antlib:net.sf.antcontrib\" basedir=\".\">\n");
+        sb.append("<target name=\"AntExec_Builder\">\n\n");
         sb.append(targetSource);
         sb.append("\n</target>\n");
         sb.append("</project>\n");
