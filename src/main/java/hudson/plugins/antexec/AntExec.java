@@ -136,7 +136,7 @@ public class AntExec extends Builder {
 
         //Setup ANT_HOME from Environment or job configuration screen
         /* Java 1.6: if ((!env.get("ANT_HOME").isEmpty()) && (new File(env.get("ANT_HOME"), antExe).exists()) && (new File(env.get("ANT_HOME"), "lib/ant.jar").exists()) && (new File(env.get("ANT_HOME"), antExe).canExecute())) */
-        if ((env.get("ANT_HOME") != null) && !(env.get("ANT_HOME").length() > 0) && (new File(env.get("ANT_HOME"), antExe).exists()) && (new File(env.get("ANT_HOME"), "lib/ant.jar").exists()) && (new File(env.get("ANT_HOME"), antExe).isFile())) {
+        if (env.get("ANT_HOME") != null && env.get("ANT_HOME").length() > 0 && !env.get("ANT_HOME").equals("") && new File(env.get("ANT_HOME"), antExe).exists() && new File(env.get("ANT_HOME"), "lib/ant.jar").exists()) {
             antHomeUse = new File(env.get("ANT_HOME"));
             if (verbose != null && verbose)
                 listener.getLogger().println(Messages.AntExec_AntHomeEnvVarFound(antHomeUse));
@@ -146,7 +146,7 @@ public class AntExec extends Builder {
 
         //Forcing configured ANT_HOME in Environment
         /* Java 1.6: if ((!antHome.isEmpty()) && (new File(antHome, antExe).exists()) && (new File(antHome, "lib/ant.jar").exists()) && new File(antHome, antExe).canExecute()) {*/
-        if ((env.get("ANT_HOME") != null) && !(env.get("ANT_HOME").length() > 0) && (new File(antHome, antExe).exists()) && (new File(antHome, "lib/ant.jar").exists()) && new File(antHome, antExe).isFile()) {
+        if (antHome != null && antHome.length() > 0 && !antHome.equals("") && new File(antHome, antExe).exists() && new File(antHome, "lib/ant.jar").exists()) {
             if (antHomeUse != null) {
                 listener.getLogger().println(Messages._AntExec_AntHomeReplacing(antHomeUse.getAbsolutePath(), antHome));
             } else {
@@ -155,6 +155,11 @@ public class AntExec extends Builder {
             antHomeUse = new File(antHome);
             env.put("ANT_HOME", antHomeUse.getAbsolutePath());
             listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_HOME", antHomeUse.getAbsolutePath()));
+        }
+
+        if (antHomeUse == null || antHomeUse.getAbsolutePath().length() < 1 || antHomeUse.getAbsolutePath().equals("") || !new File(antHomeUse, antExe).exists() || !new File(antHomeUse, "lib/ant.jar").exists()) {
+            listener.getLogger().println(Messages.AntExec_AntHomeValidation());
+            return false;
         }
 
         //Create Ant build.xml file
@@ -171,9 +176,8 @@ public class AntExec extends Builder {
         args.addKeyValuePairs("-D", build.getBuildVariables(), sensitiveVars);
         args.addKeyValuePairsFromPropertyString("-D", properties, vr, sensitiveVars);
 
-        if (antOpts != null) {
+        if (antOpts != null && antOpts.length() > 0 && !antOpts.equals("")) {
             env.put("ANT_OPTS", env.expand(antOpts));
-            listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_OPTS", env.expand(antOpts)));
         }
 
         //Get and prepare ant-contrib.jar
