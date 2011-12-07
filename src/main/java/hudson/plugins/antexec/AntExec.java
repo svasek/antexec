@@ -25,7 +25,7 @@ package hudson.plugins.antexec;
 
 import hudson.*;
 import hudson.model.*;
-//TODO: Change this:  dependency on hudson.tasks._ant.AntConsoleAnnotator
+//TODO: Dependency on hudson.tasks._ant.AntConsoleAnnotator
 import hudson.tasks._ant.AntConsoleAnnotator;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
@@ -168,6 +168,7 @@ public class AntExec extends Builder {
         args.add(antExeFile);
 
         //Make archive copy of build file to job directory
+        //TODO: Investigate how to corectly copy file into job directory from slave!
         makeBuildFile(scriptSource, new FilePath(build.getWorkspace(), "../builds/" + build.getId() + "/antexec_build.xml"));
 
         args.add("-file", buildFile.getName());
