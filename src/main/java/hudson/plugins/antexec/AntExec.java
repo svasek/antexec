@@ -26,6 +26,7 @@ package hudson.plugins.antexec;
 import hudson.*;
 import hudson.model.*;
 //TODO: Dependency on hudson.tasks._ant.AntConsoleAnnotator
+import hudson.slaves.SlaveComputer;
 import hudson.tasks._ant.AntConsoleAnnotator;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
@@ -52,6 +53,7 @@ import java.util.Set;
  */
 public class AntExec extends Builder {
     private static final String myName = "antexec";
+    private static final String buildXml = myName + "_build.xml";
     private String scriptSource;
     private String properties;
     private String antHome;
@@ -132,45 +134,28 @@ public class AntExec extends Builder {
 
         //Setup executable of ant deppending on platform
         String antExe = launcher.isUnix() ? "bin/ant" : "bin/ant.bat";
-        File antHomeUse = null;
-
-        //Setup ANT_HOME from Environment or job configuration screen
-        /* Java 1.6: if ((!env.get("ANT_HOME").isEmpty()) && (new File(env.get("ANT_HOME"), antExe).exists()) && (new File(env.get("ANT_HOME"), "lib/ant.jar").exists()) && (new File(env.get("ANT_HOME"), antExe).canExecute())) */
-        if (env.get("ANT_HOME") != null && env.get("ANT_HOME").length() > 0 && !env.get("ANT_HOME").equals("") && new File(env.get("ANT_HOME"), antExe).exists() && new File(env.get("ANT_HOME"), "lib/ant.jar").exists()) {
-            antHomeUse = new File(env.get("ANT_HOME"));
-            if (verbose != null && verbose)
-                listener.getLogger().println(Messages.AntExec_AntHomeEnvVarFound(antHomeUse));
-        } else {
-            if (verbose != null && verbose) listener.getLogger().println(Messages.AntExec_AntHomeEnvVarNotFound());
-        }
-
-        //Forcing configured ANT_HOME in Environment
-        /* Java 1.6: if ((!antHome.isEmpty()) && (new File(antHome, antExe).exists()) && (new File(antHome, "lib/ant.jar").exists()) && new File(antHome, antExe).canExecute()) {*/
-        if (antHome != null && antHome.length() > 0 && !antHome.equals("") && new File(antHome, antExe).exists() && new File(antHome, "lib/ant.jar").exists()) {
-            if (antHomeUse != null) {
-                listener.getLogger().println(Messages._AntExec_AntHomeReplacing(antHomeUse.getAbsolutePath(), antHome));
-            } else {
-                listener.getLogger().println(Messages._AntExec_AntHomeReplacing("", antHome));
-            }
-            antHomeUse = new File(antHome);
-            env.put("ANT_HOME", antHomeUse.getAbsolutePath());
-            listener.getLogger().println(Messages.AntExec_EnvironmentChanged("ANT_HOME", antHomeUse.getAbsolutePath()));
-        }
-
-        if (antHomeUse == null || antHomeUse.getAbsolutePath().length() < 1 || antHomeUse.getAbsolutePath().equals("") || !new File(antHomeUse, antExe).exists() || !new File(antHomeUse, "lib/ant.jar").exists()) {
-            listener.getLogger().println(Messages.AntExec_AntHomeValidation());
-            return false;
-        }
+        File antHomeUse = AntExecUtils.getAntHome(build, listener, antHome, verbose, antExe);
 
         //Create Ant build.xml file
         File antExeFile = new File(antHomeUse, antExe);
-        FilePath buildFile = makeBuildFile(scriptSource, new FilePath(build.getWorkspace(), "antexec_build.xml"));
+        FilePath buildFile = AntExecUtils.makeBuildFile(scriptSource, build);
         args.add(antExeFile);
 
         //Make archive copy of build file to job directory
         //TODO: Investigate how to corectly copy file into job directory from slave!
-        makeBuildFile(scriptSource, new FilePath(build.getWorkspace(), "../builds/" + build.getId() + "/antexec_build.xml"));
+        FilePath destinationFilePath;
+        if (Computer.currentComputer() instanceof SlaveComputer) {
+            destinationFilePath = AntExecUtils.getProjectWorkspaceOnMaster(build, listener.getLogger());
+            FilePath projectWorkspaceOnSlave = build.getWorkspace();
+            projectWorkspaceOnSlave.copyRecursiveTo(null, null, destinationFilePath);
+            FilePath rootFilePathOnMaster = Hudson.getInstance().getRootPath();
 
+        } else if (Computer.currentComputer() instanceof Hudson.MasterComputer) {
+            buildFile.copyTo(new FilePath(new File(build.getRootDir(), buildXml)));
+        }
+
+
+        //Added build file to the command line
         args.add("-file", buildFile.getName());
         VariableResolver<String> vr = build.getBuildVariableResolver();
         Set<String> sensitiveVars = build.getSensitiveBuildVariables();
@@ -183,12 +168,13 @@ public class AntExec extends Builder {
 
         //Get and prepare ant-contrib.jar
         if (getDescriptor().useAntContrib()) {
+            //TODO: Replace this with better methot
             if (verbose != null && verbose) listener.getLogger().println(Messages.AntExec_UseAntContribTasks());
-            URL urlAntContrib = new URL(env.get("HUDSON_URL") + "plugin/" + myName + "/lib/ant-contrib.jar");
+            FilePath antContribJarOnMaster = new FilePath(Hudson.getInstance().getRootPath(), "plugins/antexec/META-INF/lib/ant-contrib.jar");
+            //URL urlAntContrib = new URL(env.get("HUDSON_URL") + "plugin/" + myName + "/lib/ant-contrib.jar");
             FilePath antLibDir = new FilePath(build.getWorkspace(), "antlib");
             FilePath antContribJar = new FilePath(antLibDir, "ant-contrib.jar");
-
-            antContribJar.copyFrom(urlAntContrib);
+            antContribJar.copyFrom(antContribJarOnMaster.toURI().toURL());
             args.add("-lib", antLibDir.getName());
         } else {
             if (verbose != null && verbose) listener.getLogger().println(Messages.AntExec_UseAntCoreTasksOnly());
@@ -293,15 +279,4 @@ public class AntExec extends Builder {
         }
     }
 
-    private static FilePath makeBuildFile(String targetSource, FilePath buildFile) throws IOException, InterruptedException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<project default=\"AntExec_Builder\" xmlns:antcontrib=\"antlib:net.sf.antcontrib\" basedir=\".\">\n");
-        sb.append("<target name=\"AntExec_Builder\">\n\n");
-        sb.append(targetSource);
-        sb.append("\n</target>\n");
-        sb.append("</project>\n");
-
-        buildFile.write(sb.toString(), null);
-        return buildFile;
-    }
 }
