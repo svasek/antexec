@@ -34,20 +34,60 @@
         <url>https://github.com/svasek/antexec</url>
     </scm>
     <build>
-        <plugins><plugin>
-          <!-- Make sure our code doesn't have 1.6 dependencies except where we know it -->
-          <!-- To check compatibility with Java 1.5 run: mvn compile animal-sniffer:check -->
-          <groupId>org.jvnet</groupId>
-          <artifactId>animal-sniffer</artifactId>
-          <version>1.2</version>
-          <configuration>
-            <signature>
-              <groupId>org.jvnet.animal-sniffer</groupId>
-              <artifactId>java1.5</artifactId>
-              <version>1.0</version>
-            </signature>
-          </configuration>
-        </plugin>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/webapp</directory>
+                <targetPath>${project.build.directory}/${artifactId}</targetPath>
+                <filtering>true</filtering>
+                <includes>
+                    <include>version.txt</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>ant-contrib</groupId>
+                                    <artifactId>ant-contrib</artifactId>
+                                    <version>1.0b3</version>
+                                    <type>jar</type>
+                                    <outputDirectory>${project.build.directory}/${artifactId}/lib</outputDirectory>
+                                    <destFileName>ant-contrib.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!-- Make sure our code doesn't have 1.6 dependencies except where we know it -->
+                <!-- To check compatibility with Java 1.5 run: mvn compile animal-sniffer:check -->
+                <groupId>org.jvnet</groupId>
+                <artifactId>animal-sniffer</artifactId>
+                <version>1.2</version>
+                <configuration>
+                    <signature>
+                        <groupId>org.jvnet.animal-sniffer</groupId>
+                        <artifactId>java1.5</artifactId>
+                        <version>1.0</version>
+                    </signature>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
