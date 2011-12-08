@@ -26,7 +26,6 @@ package hudson.plugins.antexec;
 import hudson.*;
 import hudson.model.*;
 //TODO: Dependency on hudson.tasks._ant.AntConsoleAnnotator
-import hudson.slaves.SlaveComputer;
 import hudson.tasks._ant.AntConsoleAnnotator;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
@@ -40,7 +39,6 @@ import org.kohsuke.stapler.QueryParameter;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -52,8 +50,8 @@ import java.util.Set;
  * @author Milos Svasek
  */
 public class AntExec extends Builder {
-    private static final String myName = "antexec";
-    private static final String buildXml = myName + "_build.xml";
+    protected static final String myName = "antexec";
+    protected static final String buildXml = myName + "_build.xml";
     private String scriptSource;
     private String properties;
     private String antHome;
@@ -130,30 +128,21 @@ public class AntExec extends Builder {
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
-        EnvVars env = build.getEnvironment(listener);
+        EnvVars env = new EnvVars(build.getBuildVariables());
+        env.putAll(hudson.slaves.SlaveComputer.currentComputer().getEnvironment());
+        //env.putAll(EnvironmentVariablesNodeProperty(build.getBuiltOn().getNodeName()));
+        //hudson.slaves.EnvironmentVariablesNodeProperty.all();
 
         //Setup executable of ant deppending on platform
-        String antExe = launcher.isUnix() ? "bin/ant" : "bin/ant.bat";
-        File antHomeUse = AntExecUtils.getAntHome(build, listener, antHome, verbose, antExe);
+        String antExe = launcher.isUnix() ? "/bin/ant" : "\\bin\\ant.bat";
 
         //Create Ant build.xml file
-        File antExeFile = new File(antHomeUse, antExe);
+        FilePath antExeFile = AntExecUtils.getAntHome(build, listener.getLogger(), env, antExe, antHome, verbose);
         FilePath buildFile = AntExecUtils.makeBuildFile(scriptSource, build);
         args.add(antExeFile);
 
         //Make archive copy of build file to job directory
-        //TODO: Investigate how to corectly copy file into job directory from slave!
-        FilePath destinationFilePath;
-        if (Computer.currentComputer() instanceof SlaveComputer) {
-            destinationFilePath = AntExecUtils.getProjectWorkspaceOnMaster(build, listener.getLogger());
-            FilePath projectWorkspaceOnSlave = build.getWorkspace();
-            projectWorkspaceOnSlave.copyRecursiveTo(null, null, destinationFilePath);
-            FilePath rootFilePathOnMaster = Hudson.getInstance().getRootPath();
-
-        } else if (Computer.currentComputer() instanceof Hudson.MasterComputer) {
-            buildFile.copyTo(new FilePath(new File(build.getRootDir(), buildXml)));
-        }
-
+        buildFile.copyTo(new FilePath(new File(build.getRootDir(), buildXml)));
 
         //Added build file to the command line
         args.add("-file", buildFile.getName());
@@ -220,7 +209,7 @@ public class AntExec extends Builder {
             return r == 0;
         } catch (IOException e) {
             Util.displayIOException(e, listener);
-            String errorMessage = Messages.AntExec_ExecFailed() + Messages.AntExec_ProjectConfigNeeded();
+            String errorMessage = Messages.AntExec_ExecFailed() + " " + Messages.AntExec_ProjectConfigNeeded();
             e.printStackTrace(listener.fatalError(errorMessage));
             return false;
         }
