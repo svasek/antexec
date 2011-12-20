@@ -9,9 +9,10 @@ import java.io.PrintStream;
 
 public class AntExecUtils {
 
-    public static FilePath getAntHome(AbstractBuild build, PrintStream logger, EnvVars env, String antExe, String antHome, Boolean verbose) throws IOException, InterruptedException {
+    public static FilePath getAntHome(AbstractBuild build, PrintStream logger, EnvVars env, Boolean isUnix, String antHome, Boolean verbose) throws IOException, InterruptedException {
         String envAntHome = env.get("ANT_HOME");
         String useAntHome = null;
+        String antExe = isUnix ? "/bin/ant" : "\\bin\\ant.bat";
 
         //Setup ANT_HOME from Environment or job configuration screen
         if (envAntHome != null && envAntHome.length() > 0 && !envAntHome.equals("")) {
@@ -33,8 +34,26 @@ public class AntExecUtils {
                 }
             }
             useAntHome = antHome;
+            //Change ANT_HOME in environment
             env.put("ANT_HOME", useAntHome);
             logger.println(Messages.AntExec_EnvironmentChanged("ANT_HOME", useAntHome));
+
+            //Add ANT_HOME/bin into the environment PATH
+            String newAntPath = isUnix ? useAntHome + "/bin;" + env.get("PATH") : useAntHome + "\\bin:" + env.get("PATH");
+            env.put("PATH", newAntPath);
+            logger.println(Messages.AntExec_EnvironmentChanged("PATH", newAntPath));
+
+
+            //Add ANT_HOME/lib into the environment LD_LIBRARY_PATH
+            if(isUnix) {
+                env.put("LD_LIBRARY_PATH", useAntHome + "/lib:"+env.get("LD_LIBRARY_PATH"));
+                logger.println(Messages.AntExec_EnvironmentAdded("LD_LIBRARY_PATH", env.get("JAVA_HOME") + "/lib"));
+            }
+
+            if (env.containsKey("JAVA_HOME")) {
+                env.put("PATH", isUnix ? env.get("JAVA_HOME") + "/bin;" + env.get("PATH") : env.get("JAVA_HOME") + "\\bin:" + env.get("PATH"));
+                logger.println(Messages.AntExec_EnvironmentAdded("PATH", isUnix ? env.get("JAVA_HOME") + "/bin" : env.get("JAVA_HOME") + "\\bin"));
+            }
         }
 
         if (useAntHome == null) {

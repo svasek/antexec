@@ -133,11 +133,8 @@ public class AntExec extends Builder {
         //env.putAll(EnvironmentVariablesNodeProperty(build.getBuiltOn().getNodeName()));
         //hudson.slaves.EnvironmentVariablesNodeProperty.all();
 
-        //Setup executable of ant deppending on platform
-        String antExe = launcher.isUnix() ? "/bin/ant" : "\\bin\\ant.bat";
-
         //Create Ant build.xml file
-        FilePath antExeFile = AntExecUtils.getAntHome(build, listener.getLogger(), env, antExe, antHome, verbose);
+        FilePath antExeFile = AntExecUtils.getAntHome(build, listener.getLogger(), env, launcher.isUnix(), antHome, verbose);
         FilePath buildFile = AntExecUtils.makeBuildFile(scriptSource, build);
         args.add(antExeFile);
 
