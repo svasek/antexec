@@ -39,7 +39,7 @@ public class AntExecUtils {
             logger.println(Messages.AntExec_EnvironmentChanged("ANT_HOME", useAntHome));
 
             //Add ANT_HOME/bin into the environment PATH
-            String newAntPath = isUnix ? useAntHome + "/bin;" + env.get("PATH") : useAntHome + "\\bin:" + env.get("PATH");
+            String newAntPath = isUnix ? useAntHome + "/bin:" + env.get("PATH") : useAntHome + "\\bin;" + env.get("PATH");
             env.put("PATH", newAntPath);
             logger.println(Messages.AntExec_EnvironmentChanged("PATH", newAntPath));
 
@@ -51,7 +51,7 @@ public class AntExecUtils {
             }
 
             if (env.containsKey("JAVA_HOME")) {
-                env.put("PATH", isUnix ? env.get("JAVA_HOME") + "/bin;" + env.get("PATH") : env.get("JAVA_HOME") + "\\bin:" + env.get("PATH"));
+                env.put("PATH", isUnix ? env.get("JAVA_HOME") + "/bin:" + env.get("PATH") : env.get("JAVA_HOME") + "\\bin;" + env.get("PATH"));
                 logger.println(Messages.AntExec_EnvironmentAdded("PATH", isUnix ? env.get("JAVA_HOME") + "/bin" : env.get("JAVA_HOME") + "\\bin"));
             }
         }
