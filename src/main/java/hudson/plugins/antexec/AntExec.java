@@ -25,7 +25,8 @@ package hudson.plugins.antexec;
 
 import hudson.*;
 import hudson.model.*;
-//TODO: Dependency on hudson.tasks._ant.AntConsoleAnnotator
+//TODO: Dependency on hudson.tasks.Ant and hudson.tasks._ant.AntConsoleAnnotator
+import hudson.tasks.Ant;
 import hudson.tasks._ant.AntConsoleAnnotator;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
@@ -49,21 +50,25 @@ import java.util.Set;
  *
  * @author Milos Svasek
  */
+@SuppressWarnings("ALL")
 public class AntExec extends Builder {
-    protected static final String myName = "antexec";
+    private static final String myName = "antexec";
     protected static final String buildXml = myName + "_build.xml";
-    private String scriptSource;
-    private String properties;
-    private String antHome;
-    private String antOpts;
-    private Boolean verbose;
-    private Boolean emacs;
+    private final String scriptSource;
+    private final String properties;
+    private final String antHome;
+    private final String antOpts;
+    private final Boolean verbose;
+    private final Boolean emacs;
+    private final String antName;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
+    @SuppressWarnings("ALL")
     @DataBoundConstructor
-    public AntExec(String scriptSource, String properties, String antHome, String antOpts, Boolean verbose, Boolean emacs) {
+    public AntExec(String scriptSource, String properties, String antName, String antHome, String antOpts, Boolean verbose, Boolean emacs) {
         this.scriptSource = scriptSource;
         this.properties = properties;
+        this.antName = antName;
         this.antHome = antHome;
         this.antOpts = antOpts;
         this.verbose = verbose;
@@ -125,26 +130,49 @@ public class AntExec extends Builder {
         return emacs;
     }
 
+    /**
+     * @return Ant to invoke, or null to invoke the default one.
+     */
+    Ant.AntInstallation getAnt() {
+        for (Ant.AntInstallation i : getDescriptor().getInstallations()) {
+            if (antName != null && antName.equals(i.getName()))
+                return i;
+        }
+        return null;
+    }
+
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
-        EnvVars env = new EnvVars(build.getBuildVariables());
-        env.putAll(hudson.slaves.SlaveComputer.currentComputer().getEnvironment());
-        //env.putAll(EnvironmentVariablesNodeProperty(build.getBuiltOn().getNodeName()));
-        //hudson.slaves.EnvironmentVariablesNodeProperty.all();
+        EnvVars env = build.getEnvironment(listener);
+
+        Ant.AntInstallation ai = getAnt();
+        if (ai == null) {
+            listener.getLogger().println(Messages.AntExec_AntInstallationDefault());
+            FilePath antExeFile = AntExecUtils.getAntHome(build, listener.getLogger(), env, launcher.isUnix(), antHome, verbose);
+            args.add(antExeFile);
+        } else {
+            ai = ai.forNode(Computer.currentComputer().getNode(), listener);
+            ai = ai.forEnvironment(env);
+            String exe = ai.getExecutable(launcher);
+            if (exe == null) {
+                listener.fatalError(Messages.AntExec_ExecutableNotFound(ai.getName()));
+                return false;
+            }
+            args.add(exe);
+        }
 
         //Create Ant build.xml file
-        FilePath antExeFile = AntExecUtils.getAntHome(build, listener.getLogger(), env, launcher.isUnix(), antHome, verbose);
         FilePath buildFile = AntExecUtils.makeBuildFile(scriptSource, build);
-        args.add(antExeFile);
 
         //Make archive copy of build file to job directory
         buildFile.copyTo(new FilePath(new File(build.getRootDir(), buildXml)));
 
         //Added build file to the command line
         args.add("-file", buildFile.getName());
-        VariableResolver<String> vr = build.getBuildVariableResolver();
-        Set<String> sensitiveVars = build.getSensitiveBuildVariables();
+        @SuppressWarnings("unchecked") VariableResolver<String> vr = build.getBuildVariableResolver();
+        @SuppressWarnings("unchecked") Set<String> sensitiveVars = build.getSensitiveBuildVariables();
+        //noinspection unchecked
         args.addKeyValuePairs("-D", build.getBuildVariables(), sensitiveVars);
         args.addKeyValuePairsFromPropertyString("-D", properties, vr, sensitiveVars);
 
@@ -157,7 +185,6 @@ public class AntExec extends Builder {
             //TODO: Replace this with better methot
             if (verbose != null && verbose) listener.getLogger().println(Messages.AntExec_UseAntContribTasks());
             FilePath antContribJarOnMaster = new FilePath(Hudson.getInstance().getRootPath(), "plugins/antexec/META-INF/lib/ant-contrib.jar");
-            //URL urlAntContrib = new URL(env.get("HUDSON_URL") + "plugin/" + myName + "/lib/ant-contrib.jar");
             FilePath antLibDir = new FilePath(build.getWorkspace(), "antlib");
             FilePath antContribJar = new FilePath(antLibDir, "ant-contrib.jar");
             antContribJar.copyFrom(antContribJarOnMaster.toURI().toURL());
@@ -217,13 +244,23 @@ public class AntExec extends Builder {
         return (DescriptorImpl) super.getDescriptor();
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         private boolean useAntContrib;
 
+        @CopyOnWrite
+        private volatile Ant.AntInstallation[] installations = new Ant.AntInstallation[0];
+
+        @SuppressWarnings("UnusedDeclaration")
         public DescriptorImpl() {
             super(AntExec.class);
             load();
+        }
+
+        // for compatibility reasons, the persistence is done by Ant.DescriptorImpl
+        public Ant.AntInstallation[] getInstallations() {
+            return Hudson.getInstance().getDescriptorByType(Ant.DescriptorImpl.class).getInstallations();
         }
 
         //ANT_HOME job configuration field validation

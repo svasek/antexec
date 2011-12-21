@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
+<!--suppress ALL -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
     <f:entry title="${%Script source}" field="scriptSource"
@@ -31,6 +32,17 @@ THE SOFTWARE.
         <f:entry title="${%Properties}" field="properties" help="/help/ant/ant-properties.html">
             <f:textarea name="antexec.properties" value="${instance.properties}"/>
         </f:entry>
+        <j:if test="${!empty(descriptor.installations)}">
+            <f:entry title="${%Ant Version}">
+                <select class="setting-input" name="ant.antName">
+                    <option value="(Default)">(${%Default})</option>
+                    <j:forEach var="inst" items="${descriptor.installations}">
+                        <f:option selected="${inst.name==instance.ant.name}" value="${inst.name}">${inst.name}
+                        </f:option>
+                    </j:forEach>
+                </select>
+            </f:entry>
+        </j:if>
         <f:advanced>
             <f:entry title="ANT_HOME" field="antHome">
                 <f:textbox name="antexec.antHome" value="${instance.antHome}"/>

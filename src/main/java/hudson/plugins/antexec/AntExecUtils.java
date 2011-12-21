@@ -7,7 +7,7 @@ import hudson.model.*;
 import java.io.IOException;
 import java.io.PrintStream;
 
-public class AntExecUtils {
+class AntExecUtils {
 
     public static FilePath getAntHome(AbstractBuild build, PrintStream logger, EnvVars env, Boolean isUnix, String antHome, Boolean verbose) throws IOException, InterruptedException {
         String envAntHome = env.get("ANT_HOME");
@@ -17,8 +17,7 @@ public class AntExecUtils {
         //Setup ANT_HOME from Environment or job configuration screen
         if (envAntHome != null && envAntHome.length() > 0 && !envAntHome.equals("")) {
             useAntHome = envAntHome;
-            if (verbose != null && verbose)
-                logger.println(Messages.AntExec_AntHomeEnvVarFound(useAntHome));
+            if (verbose != null && verbose) logger.println(Messages.AntExec_AntHomeEnvVarFound(useAntHome));
         } else {
             if (verbose != null && verbose) logger.println(Messages.AntExec_AntHomeEnvVarNotFound());
         }
@@ -41,18 +40,12 @@ public class AntExecUtils {
             //Add ANT_HOME/bin into the environment PATH
             String newAntPath = isUnix ? useAntHome + "/bin:" + env.get("PATH") : useAntHome + "\\bin;" + env.get("PATH");
             env.put("PATH", newAntPath);
-            logger.println(Messages.AntExec_EnvironmentChanged("PATH", newAntPath));
+            if (verbose != null && verbose) logger.println(Messages.AntExec_EnvironmentAdded("PATH", newAntPath));
 
-
-            //Add ANT_HOME/lib into the environment LD_LIBRARY_PATH
-            if(isUnix) {
-                env.put("LD_LIBRARY_PATH", useAntHome + "/lib:"+env.get("LD_LIBRARY_PATH"));
-                logger.println(Messages.AntExec_EnvironmentAdded("LD_LIBRARY_PATH", useAntHome + "/lib"));
-            }
-
+            //Add JAVA_HOME/bin into the environment PATH
             if (env.containsKey("JAVA_HOME")) {
                 env.put("PATH", isUnix ? env.get("JAVA_HOME") + "/bin:" + env.get("PATH") : env.get("JAVA_HOME") + "\\bin;" + env.get("PATH"));
-                logger.println(Messages.AntExec_EnvironmentAdded("PATH", isUnix ? env.get("JAVA_HOME") + "/bin" : env.get("JAVA_HOME") + "\\bin"));
+                if (verbose != null && verbose) logger.println(Messages.AntExec_EnvironmentAdded("PATH", isUnix ? env.get("JAVA_HOME") + "/bin" : env.get("JAVA_HOME") + "\\bin"));
             }
         }
 
@@ -62,7 +55,7 @@ public class AntExecUtils {
             return build.getBuiltOn().createPath("ant");
         } else {
             if (build.getBuiltOn().createPath(useAntHome + antExe).exists()) {
-                logger.println(build.getBuiltOn().createPath(useAntHome + antExe) + " exists!");
+                if (verbose != null && verbose) logger.println(build.getBuiltOn().createPath("OK:" + useAntHome + antExe) + " exists!");
             }
             return build.getBuiltOn().createPath(useAntHome + antExe);
         }
