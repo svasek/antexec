@@ -47,7 +47,7 @@ public class AntExecUtils {
             //Add ANT_HOME/lib into the environment LD_LIBRARY_PATH
             if(isUnix) {
                 env.put("LD_LIBRARY_PATH", useAntHome + "/lib:"+env.get("LD_LIBRARY_PATH"));
-                logger.println(Messages.AntExec_EnvironmentAdded("LD_LIBRARY_PATH", env.get("JAVA_HOME") + "/lib"));
+                logger.println(Messages.AntExec_EnvironmentAdded("LD_LIBRARY_PATH", useAntHome + "/lib"));
             }
 
             if (env.containsKey("JAVA_HOME")) {
