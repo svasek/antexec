@@ -37,7 +37,10 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
+import org.xml.sax.*;
+import org.xml.sax.helpers.XMLReaderFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -279,6 +282,18 @@ public class AntExec extends Builder {
             if (!antJar.exists())
                 return FormValidation.error(Messages.AntExec_NotAntDirectory(value));
             return FormValidation.ok();
+        }
+
+        //Check if entered script source is wellformed xml document
+        public FormValidation doCheckScriptSource(@QueryParameter String value) throws IOException {
+            String xmlContent = AntExecUtils.makeBuildFileXml(value);
+            try {
+                XMLReader reader = XMLReaderFactory.createXMLReader();
+                reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes())));
+                return FormValidation.ok();
+            } catch (SAXException sax) {
+                return FormValidation.error("ERROR: " + sax.getLocalizedMessage());
+            }
         }
 
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
