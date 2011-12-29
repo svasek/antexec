@@ -104,6 +104,8 @@
                 </configuration>
             </plugin>
             <plugin>
+                <!-- This is only for plugin that depend on a parent POM 1.387 and earlier.
+                This prevents the release process from executing hpi:upload and hpi:announce goals, which fail. -->
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
                     <goals>deploy</goals>
