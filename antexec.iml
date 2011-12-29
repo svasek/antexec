@@ -12,7 +12,9 @@
       <excludeFolder url="file://$MODULE_DIR$/target/antexec" />
       <excludeFolder url="file://$MODULE_DIR$/target/classes" />
       <excludeFolder url="file://$MODULE_DIR$/target/generated-sources/groovy-stubs" />
+      <excludeFolder url="file://$MODULE_DIR$/target/hudson-for-test" />
       <excludeFolder url="file://$MODULE_DIR$/target/inject-tests" />
+      <excludeFolder url="file://$MODULE_DIR$/target/surefire-reports" />
       <excludeFolder url="file://$MODULE_DIR$/target/test-classes" />
       <excludeFolder url="file://$MODULE_DIR$/work" />
     </content>

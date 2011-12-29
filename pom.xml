@@ -1,26 +1,38 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
     <parent>
         <groupId>org.jvnet.hudson.plugins</groupId>
         <artifactId>plugin</artifactId>
         <!-- which version of Hudson is this plugin built against? -->
         <version>1.381</version>
     </parent>
+
     <artifactId>antexec</artifactId>
     <version>1.0-SNAPSHOT</version>
     <!--<version>1.2</version>-->
     <packaging>hpi</packaging>
     <name>AntExec</name>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <description>Adds new build step for running directly written Apache Ant code</description>
+    <url>https://github.com/svasek/antexec</url>
+
+    <distributionManagement>
+        <repository>
+            <id>maven.jenkins-ci.org</id>
+            <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>
+
     <developers>
         <developer>
             <id>svasek@gmail.com</id>
             <name>Milos Svasek</name>
         </developer>
     </developers>
+
     <licenses>
         <license>
             <name>The MIT license</name>
@@ -28,11 +40,13 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
     <scm>
         <connection>scm:git:git://github.com/svasek/antexec.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/svasek/antexec.git</developerConnection>
         <url>https://github.com/svasek/antexec</url>
     </scm>
+
     <build>
         <resources>
             <resource>
@@ -66,7 +80,8 @@
                                     <artifactId>ant-contrib</artifactId>
                                     <version>1.0b3</version>
                                     <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/${artifactId}/META-INF/lib</outputDirectory>
+                                    <outputDirectory>${project.build.directory}/${artifactId}/META-INF/lib
+                                    </outputDirectory>
                                     <destFileName>ant-contrib.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
@@ -86,6 +101,12 @@
                         <artifactId>java1.5</artifactId>
                         <version>1.0</version>
                     </signature>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <goals>deploy</goals>
                 </configuration>
             </plugin>
         </plugins>
