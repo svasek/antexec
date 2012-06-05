@@ -42,6 +42,9 @@ f.advanced {
     f.entry(title: _("Script name"), field: "scriptName", description: _("ScriptName description")) {
         f.expandableTextbox()
     }
+    f.entry(title: _("Extended script source"), field: "extendedScriptSource", class: "fixed-width", description: _("Extended source description")) {
+        f.textarea()
+    }
     f.entry(title: _("Properties"), field: "properties", class: "fixed-width") {
         f.expandableTextbox()
     }
@@ -55,7 +58,6 @@ f.advanced {
         f.entry(title: _("Verbose mode"), field: "verbose") {
             f.checkbox()
             f.description {_("Enabling verbose output")}
-
         }
         f.entry(title: _("Emacs mode"), field: "emacs") {
             f.checkbox()

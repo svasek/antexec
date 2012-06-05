@@ -64,24 +64,31 @@ class AntExecUtils {
     }
 
 
-    static String makeBuildFileXml(String scriptSource) {
+    static String makeBuildFileXml(String scriptSource, String extendedScriptSource, String scriptName) {
         StringBuilder sb = new StringBuilder();
+        String myScripName = AntExec.buildXml;
+        if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
+            myScripName = scriptName;
+        }
         sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-        sb.append("<project default=\"AntExec_Builder\" xmlns:antcontrib=\"antlib:net.sf.antcontrib\" basedir=\".\">\n\n");
-        //sb.append("<target name=\"AntExec_Builder\">\n");
+        sb.append("<project default=\"" + myScripName + "\" xmlns:antcontrib=\"antlib:net.sf.antcontrib\" basedir=\".\">\n\n");
+        sb.append("<target name=\"" + myScripName + "\">\n");
+        sb.append("<!-- This is default target entered in the first textarea -->\n");
         sb.append(scriptSource);
-        //sb.append("\n</target>\n");
-        sb.append("</project>\n");
+        sb.append("\n</target>\n\n");
+        sb.append("<!-- This is extended script source entered in the second textarea-->\n");
+        sb.append(extendedScriptSource);
+        sb.append("\n</project>\n");
         return sb.toString();
     }
 
-    static FilePath makeBuildFile(String scriptName, String targetSource, AbstractBuild build) throws IOException, InterruptedException {
+    static FilePath makeBuildFile(String scriptName, String targetSource, String extendedScriptSource, AbstractBuild build) throws IOException, InterruptedException {
         String myScripName = AntExec.buildXml;
         if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
             myScripName = scriptName;
         }
         FilePath buildFile = new FilePath(build.getWorkspace(), myScripName);
-        buildFile.write(makeBuildFileXml(targetSource), null);
+        buildFile.write(makeBuildFileXml(targetSource, extendedScriptSource, scriptName), null);
         return buildFile;
     }
 }

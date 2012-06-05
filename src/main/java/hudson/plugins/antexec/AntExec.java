@@ -58,6 +58,7 @@ public class AntExec extends Builder {
     private static final String myName = "antexec";
     protected static final String buildXml = myName + "_build.xml";
     private final String scriptSource;
+    private final String extendedScriptSource;
     private final String scriptName;
     private final String properties;
     private final String antHome;
@@ -66,11 +67,12 @@ public class AntExec extends Builder {
     private final Boolean emacs;
     private final String antName;
 
-    // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
+    // Fields in config.groovy must match the parameter names in the "DataBoundConstructor"
     @SuppressWarnings("ALL")
     @DataBoundConstructor
-    public AntExec(String scriptSource, String scriptName, String properties, String antName, String antHome, String antOpts, Boolean verbose, Boolean emacs) {
+    public AntExec(String scriptSource, String extendedScriptSource, String scriptName, String properties, String antName, String antHome, String antOpts, Boolean verbose, Boolean emacs) {
         this.scriptSource = scriptSource;
+        this.extendedScriptSource = extendedScriptSource;
         this.scriptName = scriptName;
         this.properties = properties;
         this.antName = antName;
@@ -88,6 +90,16 @@ public class AntExec extends Builder {
     public String getScriptSource() {
         return scriptSource;
     }
+
+    /**
+     * Returns content of text area with script source from job configuration screen
+     *
+     * @return String extendedScriptSource
+     */
+    public String getExtendedScriptSource() {
+        return extendedScriptSource;
+    }
+
 
     /**
      * Returns content of text area with script name from job configuration screen
@@ -177,7 +189,7 @@ public class AntExec extends Builder {
         }
 
         //Create Ant build.xml file
-        FilePath buildFile = AntExecUtils.makeBuildFile(scriptName, scriptSource, build);
+        FilePath buildFile = AntExecUtils.makeBuildFile(scriptName, scriptSource, extendedScriptSource, build);
 
         //Make archive copy of build file to job directory
         buildFile.copyTo(new FilePath(new File(build.getRootDir(), buildXml)));
@@ -297,7 +309,19 @@ public class AntExec extends Builder {
 
         //Check if entered script source is wellformed xml document
         public FormValidation doCheckScriptSource(@QueryParameter String value) throws IOException {
-            String xmlContent = AntExecUtils.makeBuildFileXml(value);
+            String xmlContent = AntExecUtils.makeBuildFileXml("", value, "test_script");
+            try {
+                XMLReader reader = XMLReaderFactory.createXMLReader();
+                reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes())));
+                return FormValidation.ok();
+            } catch (SAXException sax) {
+                return FormValidation.error("ERROR: " + sax.getLocalizedMessage());
+            }
+        }
+
+        //Check if entered extended script source is wellformed xml document
+        private FormValidation doCheckExtendedScriptSource(@QueryParameter String value) throws IOException {
+            String xmlContent = AntExecUtils.makeBuildFileXml(value, "", "test_script");
             try {
                 XMLReader reader = XMLReaderFactory.createXMLReader();
                 reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes())));
