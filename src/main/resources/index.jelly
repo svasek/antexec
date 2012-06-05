@@ -23,5 +23,5 @@ THE SOFTWARE.
 -->
 <!--suppress ALL -->
 <div>
-    This plugin allows Hudson/Jenkins to execute one "Apache Ant target" written directly into the Hudson as build step.
+    This plugin makes it possible to run Apache Ant code directly from Jenkins-CI
 </div>
