@@ -58,6 +58,7 @@ public class AntExec extends Builder {
     private static final String myName = "antexec";
     protected static final String buildXml = myName + "_build.xml";
     private final String scriptSource;
+    private final String scriptName;
     private final String properties;
     private final String antHome;
     private final String antOpts;
@@ -68,8 +69,9 @@ public class AntExec extends Builder {
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @SuppressWarnings("ALL")
     @DataBoundConstructor
-    public AntExec(String scriptSource, String properties, String antName, String antHome, String antOpts, Boolean verbose, Boolean emacs) {
+    public AntExec(String scriptSource, String scriptName, String properties, String antName, String antHome, String antOpts, Boolean verbose, Boolean emacs) {
         this.scriptSource = scriptSource;
+        this.scriptName = scriptName;
         this.properties = properties;
         this.antName = antName;
         this.antHome = antHome;
@@ -85,6 +87,15 @@ public class AntExec extends Builder {
      */
     public String getScriptSource() {
         return scriptSource;
+    }
+
+    /**
+     * Returns content of text area with script name from job configuration screen
+     *
+     * @return String scriptName
+     */
+    public String getScriptName() {
+        return scriptName;
     }
 
     /**
@@ -166,7 +177,7 @@ public class AntExec extends Builder {
         }
 
         //Create Ant build.xml file
-        FilePath buildFile = AntExecUtils.makeBuildFile(scriptSource, build);
+        FilePath buildFile = AntExecUtils.makeBuildFile(scriptName, scriptSource, build);
 
         //Make archive copy of build file to job directory
         buildFile.copyTo(new FilePath(new File(build.getRootDir(), buildXml)));

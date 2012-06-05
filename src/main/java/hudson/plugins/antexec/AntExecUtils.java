@@ -68,15 +68,19 @@ class AntExecUtils {
         StringBuilder sb = new StringBuilder();
         sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
         sb.append("<project default=\"AntExec_Builder\" xmlns:antcontrib=\"antlib:net.sf.antcontrib\" basedir=\".\">\n\n");
-        sb.append("<target name=\"AntExec_Builder\">\n");
+        //sb.append("<target name=\"AntExec_Builder\">\n");
         sb.append(scriptSource);
-        sb.append("\n</target>\n");
+        //sb.append("\n</target>\n");
         sb.append("</project>\n");
         return sb.toString();
     }
 
-    static FilePath makeBuildFile(String targetSource, AbstractBuild build) throws IOException, InterruptedException {
-        FilePath buildFile = new FilePath(build.getWorkspace(), AntExec.buildXml);
+    static FilePath makeBuildFile(String scriptName, String targetSource, AbstractBuild build) throws IOException, InterruptedException {
+        String myScripName = AntExec.buildXml;
+        if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
+            myScripName = scriptName;
+        }
+        FilePath buildFile = new FilePath(build.getWorkspace(), myScripName);
         buildFile.write(makeBuildFileXml(targetSource), null);
         return buildFile;
     }
