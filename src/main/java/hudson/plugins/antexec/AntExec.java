@@ -61,7 +61,6 @@ public class AntExec extends Builder {
     private final String extendedScriptSource;
     private final String scriptName;
     private final String properties;
-    private final String antHome;
     private final String antOpts;
     private final Boolean verbose;
     private final Boolean emacs;
@@ -70,13 +69,12 @@ public class AntExec extends Builder {
     // Fields in config.groovy must match the parameter names in the "DataBoundConstructor"
     @SuppressWarnings("ALL")
     @DataBoundConstructor
-    public AntExec(String scriptSource, String extendedScriptSource, String scriptName, String properties, String antName, String antHome, String antOpts, Boolean verbose, Boolean emacs) {
+    public AntExec(String scriptSource, String extendedScriptSource, String scriptName, String properties, String antName, String antOpts, Boolean verbose, Boolean emacs) {
         this.scriptSource = scriptSource;
         this.extendedScriptSource = extendedScriptSource;
         this.scriptName = scriptName;
         this.properties = properties;
         this.antName = antName;
-        this.antHome = antHome;
         this.antOpts = antOpts;
         this.verbose = verbose;
         this.emacs = emacs;
@@ -117,15 +115,6 @@ public class AntExec extends Builder {
      */
     public String getProperties() {
         return properties;
-    }
-
-    /**
-     * Returns content of text field with ANT_HOME from job configuration screen
-     *
-     * @return String antHome
-     */
-    public String getAntHome() {
-        return antHome;
     }
 
     /**
@@ -171,25 +160,23 @@ public class AntExec extends Builder {
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
         EnvVars env = build.getEnvironment(listener);
+        env.overrideAll(build.getBuildVariables());
 
         Ant.AntInstallation ai = getAnt();
         if (ai == null) {
-            listener.getLogger().println(Messages.AntExec_AntInstallationDefault());
-            FilePath antExeFile = AntExecUtils.getAntHome(build, listener.getLogger(), env, launcher.isUnix(), antHome, verbose);
-            args.add(antExeFile);
+            args.add(launcher.isUnix() ? "ant" : "ant.bat");
         } else {
             ai = ai.forNode(Computer.currentComputer().getNode(), listener);
             ai = ai.forEnvironment(env);
             String exe = ai.getExecutable(launcher);
             if (exe == null) {
-                listener.fatalError(Messages.AntExec_ExecutableNotFound(ai.getName()));
                 return false;
             }
             args.add(exe);
         }
 
         //Create Ant build.xml file
-        FilePath buildFile = AntExecUtils.makeBuildFile(scriptName, scriptSource, extendedScriptSource, build);
+        FilePath buildFile = makeBuildFile(scriptName, scriptSource, extendedScriptSource, build);
 
         //Make archive copy of build file to job directory
         buildFile.copyTo(new FilePath(new File(build.getRootDir(), buildXml)));
@@ -202,6 +189,8 @@ public class AntExec extends Builder {
         args.addKeyValuePairs("-D", build.getBuildVariables(), sensitiveVars);
         args.addKeyValuePairsFromPropertyString("-D", properties, vr, sensitiveVars);
 
+        if (ai != null)
+            env.put("ANT_HOME", ai.getHome());
         if (antOpts != null && antOpts.length() > 0 && !antOpts.equals("")) {
             env.put("ANT_OPTS", env.expand(antOpts));
         }
@@ -248,6 +237,7 @@ public class AntExec extends Builder {
             listener.getLogger().println();
         }
 
+        long startTime = System.currentTimeMillis();
         try {
             AntConsoleAnnotator aca = new AntConsoleAnnotator(listener.getLogger(), build.getCharset());
             int r;
@@ -259,7 +249,16 @@ public class AntExec extends Builder {
             return r == 0;
         } catch (IOException e) {
             Util.displayIOException(e, listener);
-            String errorMessage = Messages.AntExec_ExecFailed() + " " + Messages.AntExec_ProjectConfigNeeded();
+
+            String errorMessage = hudson.tasks.Messages.Ant_ExecFailed();
+            if (ai == null && (System.currentTimeMillis() - startTime) < 1000) {
+                if (getDescriptor().getInstallations() == null)
+                    // looks like the user didn't configure any Ant installation
+                    errorMessage += hudson.tasks.Messages.Ant_GlobalConfigNeeded();
+                else
+                    // There are Ant installations configured but the project didn't pick it
+                    errorMessage += hudson.tasks.Messages.Ant_ProjectConfigNeeded();
+            }
             e.printStackTrace(listener.fatalError(errorMessage));
             return false;
         }
@@ -309,7 +308,7 @@ public class AntExec extends Builder {
 
         //Check if entered script source is wellformed xml document
         public FormValidation doCheckScriptSource(@QueryParameter String value) throws IOException {
-            String xmlContent = AntExecUtils.makeBuildFileXml("", value, "test_script");
+            String xmlContent = makeBuildFileXml("", value, "test_script");
             try {
                 XMLReader reader = XMLReaderFactory.createXMLReader();
                 reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes())));
@@ -321,7 +320,7 @@ public class AntExec extends Builder {
 
         //Check if entered extended script source is wellformed xml document
         private FormValidation doCheckExtendedScriptSource(@QueryParameter String value) throws IOException {
-            String xmlContent = AntExecUtils.makeBuildFileXml(value, "", "test_script");
+            String xmlContent = makeBuildFileXml(value, "", "test_script");
             try {
                 XMLReader reader = XMLReaderFactory.createXMLReader();
                 reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes())));
@@ -350,6 +349,34 @@ public class AntExec extends Builder {
         public boolean useAntContrib() {
             return useAntContrib;
         }
+    }
+
+    static String makeBuildFileXml(String scriptSource, String extendedScriptSource, String scriptName) {
+        StringBuilder sb = new StringBuilder();
+        String myScripName = buildXml;
+        if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
+            myScripName = scriptName;
+        }
+        sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+        sb.append("<project default=\"" + myScripName + "\" xmlns:antcontrib=\"antlib:net.sf.antcontrib\" basedir=\".\">\n\n");
+        sb.append("<target name=\"" + myScripName + "\">\n");
+        sb.append("<!-- This is default target entered in the first textarea -->\n");
+        sb.append(scriptSource);
+        sb.append("\n</target>\n\n");
+        sb.append("<!-- This is extended script source entered in the second textarea-->\n");
+        sb.append(extendedScriptSource);
+        sb.append("\n</project>\n");
+        return sb.toString();
+    }
+
+    static FilePath makeBuildFile(String scriptName, String targetSource, String extendedScriptSource, AbstractBuild build) throws IOException, InterruptedException {
+        String myScripName = buildXml;
+        if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
+            myScripName = scriptName;
+        }
+        FilePath buildFile = new FilePath(build.getWorkspace(), myScripName);
+        buildFile.write(makeBuildFileXml(targetSource, extendedScriptSource, scriptName), null);
+        return buildFile;
     }
 
 }

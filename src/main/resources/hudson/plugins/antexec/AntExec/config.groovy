@@ -49,9 +49,6 @@ f.advanced {
         f.expandableTextbox()
     }
     f.advanced {
-        f.entry(title: _("ANT_HOME"), field: "antHome") {
-            f.expandableTextbox()
-        }
         f.entry(title: _("Java Options"), field: "antOpts") {
             f.expandableTextbox()
         }
