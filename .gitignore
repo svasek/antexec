@@ -1,3 +1,4 @@
+.gitignore
 .classpath
 .project
 .settings/
@@ -5,3 +6,7 @@
 antexec.iml
 target/
 work/
+lib/
+release.properties
+build_and_deploy.bat
+pom.xml.releaseBackup
