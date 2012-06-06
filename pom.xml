@@ -9,7 +9,6 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <!-- which version of Hudson is this plugin built against? -->
         <version>1.424</version>
     </parent>
 
@@ -19,13 +18,6 @@
     <name>AntExec</name>
     <description>Adds new build step for running directly written Apache Ant code</description>
     <url>https://wiki.jenkins-ci.org/display/JENKINS/AntExec+plugin</url>
-
-    <distributionManagement>
-        <repository>
-            <id>maven.jenkins-ci.org</id>
-            <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
-        </repository>
-    </distributionManagement>
 
     <developers>
         <developer>
@@ -50,9 +42,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/jenkinsci/antexec-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/antexec-plugin.git</developerConnection>
-        <url>https://github.com/svasek</url>
+        <connection>scm:git:ssh://github.com/jenkinsci/antexec-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/antexec-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/antexec-plugin</url>
     </scm>
 
     <dependencies>
@@ -105,7 +97,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <!-- Make sure our code doesn't have 1.6 dependencies except where we know it -->
                 <!-- To check compatibility with Java 1.5 run: mvn compile animal-sniffer:check -->
                 <groupId>org.jvnet</groupId>
                 <artifactId>animal-sniffer</artifactId>
@@ -119,8 +110,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <!-- This is only for plugin that depend on a parent POM 1.387 and earlier.
-                This prevents the release process from executing hpi:upload and hpi:announce goals, which fail. -->
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
                     <goals>deploy</goals>
