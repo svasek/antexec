@@ -15,7 +15,6 @@
 
     <artifactId>antexec</artifactId>
     <version>1.3-SNAPSHOT</version>
-    <!--<version>1.2</version>-->
     <packaging>hpi</packaging>
     <name>AntExec</name>
     <description>Adds new build step for running directly written Apache Ant code</description>
@@ -136,7 +135,6 @@
             <url>http://repo.jenkins-ci.org/public/</url>
         </repository>
     </repositories>
-
     <pluginRepositories>
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>
