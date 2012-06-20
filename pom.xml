@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>antexec</artifactId>
-    <version>1.4</version>
+    <version>1.5-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>AntExec</name>
     <description>Adds new build step for running directly written Apache Ant code</description>
