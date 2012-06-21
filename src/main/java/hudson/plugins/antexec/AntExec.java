@@ -360,16 +360,16 @@ public class AntExec extends Builder {
         sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
         sb.append("<project default=\"" + myScripName + "\" xmlns:antcontrib=\"antlib:net.sf.antcontrib\" basedir=\".\">\n\n");
         sb.append("<target name=\"" + myScripName + "\">\n");
-        sb.append("<!-- Default target entered in the first textarea -- begin -->\n");
+        sb.append("<!-- Default target entered in the first textarea - begin -->\n");
         sb.append(scriptSource);
-        sb.append("<!-- Default target entered in the first textarea --  end  -->\n");
-        sb.append("\n</target>\n");
+        sb.append("\n<!-- Default target entered in the first textarea -  end  -->\n");
+        sb.append("</target>\n");
         if (extendedScriptSource != null && extendedScriptSource.length() > 0 && extendedScriptSource.equals("")) {
-            sb.append("<!-- Extended script source entered in the second textarea -- begin -->\n");
+            sb.append("<!-- Extended script source entered in the second textarea - begin -->\n");
             sb.append(extendedScriptSource);
-            sb.append("<!-- Extended script source entered in the second textarea --  end  -->\n");
+            sb.append("\n<!-- Extended script source entered in the second textarea -  end  -->\n");
         }
-        sb.append("\n</project>\n");
+        sb.append("</project>\n");
         return sb.toString();
     }
 
