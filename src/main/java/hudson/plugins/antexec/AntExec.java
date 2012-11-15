@@ -288,24 +288,6 @@ public class AntExec extends Builder {
             return Hudson.getInstance().getDescriptorByType(Ant.DescriptorImpl.class).getInstallations();
         }
 
-        //ANT_HOME job configuration field validation
-        public FormValidation doCheckAntHome(@QueryParameter File value) {
-            // this can be used to check the existence of a file on the server, so needs to be protected
-            if (!Hudson.getInstance().hasPermission(Hudson.ADMINISTER))
-                return FormValidation.ok();
-
-            if (value.length() == 0)
-                return FormValidation.error(Messages.AntExec_AntHomeValidation());
-
-            if (!value.isDirectory())
-                return FormValidation.error(Messages.AntExec_NotADirectory(value));
-
-            File antJar = new File(value, "lib/ant.jar");
-            if (!antJar.exists())
-                return FormValidation.error(Messages.AntExec_NotAntDirectory(value));
-            return FormValidation.ok();
-        }
-
         //Check if entered script source is wellformed xml document
         public FormValidation doCheckScriptSource(@QueryParameter String value) throws IOException {
             String xmlContent = makeBuildFileXml("", value, "test_script");
@@ -364,7 +346,7 @@ public class AntExec extends Builder {
         sb.append(scriptSource);
         sb.append("\n<!-- Default target entered in the first textarea -  end  -->\n");
         sb.append("</target>\n");
-        if (extendedScriptSource != null && extendedScriptSource.length() > 0 && extendedScriptSource.equals("")) {
+        if (extendedScriptSource != null && extendedScriptSource.length() > 0 && !extendedScriptSource.equals("")) {
             sb.append("<!-- Extended script source entered in the second textarea - begin -->\n");
             sb.append(extendedScriptSource);
             sb.append("\n<!-- Extended script source entered in the second textarea -  end  -->\n");
