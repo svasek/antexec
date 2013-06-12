@@ -46,6 +46,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jenkinsci.plugins.tokenmacro.MacroEvaluationException;
+import org.jenkinsci.plugins.tokenmacro.TokenMacro;
 
 /**
  * Invokes the Apache Ant script entered on the hudson build configuration.
@@ -159,9 +163,18 @@ public class AntExec extends Builder {
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
+        String scriptSourceResolved = scriptSource;
+        String extendedScriptSourceResolved = extendedScriptSource;
+        try {
+            //Resolve all the envirionment variables and properties before creating the build.xml
+            scriptSourceResolved = TokenMacro.expandAll(build, listener, scriptSource);
+            extendedScriptSourceResolved = TokenMacro.expandAll(build, listener, extendedScriptSource);
+        } catch (MacroEvaluationException ex) {
+            Logger.getLogger(AntExec.class.getName()).log(Level.SEVERE, null, ex);
+        }
         EnvVars env = build.getEnvironment(listener);
         env.overrideAll(build.getBuildVariables());
-
+ 
         Ant.AntInstallation ai = getAnt();
         if (ai == null) {
             args.add(launcher.isUnix() ? "ant" : "ant.bat");
@@ -175,8 +188,9 @@ public class AntExec extends Builder {
             args.add(exe);
         }
 
+        
         //Create Ant build.xml file
-        FilePath buildFile = makeBuildFile(scriptName, scriptSource, extendedScriptSource, build);
+        FilePath buildFile = makeBuildFile(scriptName, scriptSourceResolved, extendedScriptSourceResolved, build);
 
         //Make archive copy of build file to job directory
         buildFile.copyTo(new FilePath(new File(build.getRootDir(), buildXml)));
@@ -186,9 +200,10 @@ public class AntExec extends Builder {
         @SuppressWarnings("unchecked") VariableResolver<String> vr = build.getBuildVariableResolver();
         @SuppressWarnings("unchecked") Set<String> sensitiveVars = build.getSensitiveBuildVariables();
         //noinspection unchecked
-        args.addKeyValuePairs("-D", build.getBuildVariables(), sensitiveVars);
+              
+        //Resolve the properties passed
         args.addKeyValuePairsFromPropertyString("-D", properties, vr, sensitiveVars);
-
+       
         if (ai != null)
             env.put("ANT_HOME", ai.getHome());
         if (antOpts != null && antOpts.length() > 0 && !antOpts.equals("")) {
@@ -224,11 +239,11 @@ public class AntExec extends Builder {
             args = new ArgumentListBuilder(newArgs.toArray(new String[newArgs.size()]));
         }
 
-        //Content of scriptSource and properties (only if verbose is true
+        //Content of scriptSourceResolved and properties (only if verbose is true
         if (verbose != null && verbose) {
             listener.getLogger().println();
             listener.getLogger().println(Messages.AntExec_DebugScriptSourceFieldBegin());
-            listener.getLogger().println(scriptSource);
+            listener.getLogger().println(scriptSourceResolved);
             listener.getLogger().println(Messages.AntExec_DebugScriptSourceFieldEnd());
             listener.getLogger().println();
             listener.getLogger().println(Messages.AntExec_DebugPropertiesFieldBegin());
