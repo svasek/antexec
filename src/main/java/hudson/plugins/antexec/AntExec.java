@@ -260,6 +260,13 @@ public class AntExec extends Builder {
                 r = launcher.launch().cmds(args).envs(env).stdout(aca).pwd(buildFile.getParent()).join();
             } finally {
                 aca.forceEol();
+                //After the ant script has been executed, we delete the build.xml. 
+                //The plugin is a way to run an Ant Script from a small source code, we shoudn't keep the build.xml
+                boolean deleteResponse = buildFile.delete();
+                if(!deleteResponse)
+                {
+                    listener.getLogger().println("The temporary Ant Build Script coudn't be deleted");
+                }
             }
             return r == 0;
         } catch (IOException e) {
