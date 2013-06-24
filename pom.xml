@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>antexec</artifactId>
-    <version>1.7-SNAPSHOT</version>
+    <version>1.8-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>AntExec</name>
     <description>Adds new build step for running directly written Apache Ant code</description>
@@ -41,8 +41,8 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:ssh://github.com/jenkinsci/antexec-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/antexec-plugin.git</developerConnection>
+        <connection>scm:git:https://github.com/jenkinsci/antexec-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/jenkinsci/antexec-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/antexec-plugin</url>
     </scm>
 
