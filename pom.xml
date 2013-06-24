@@ -41,8 +41,8 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:ssh://github.com/jenkinsci/antexec-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/antexec-plugin.git</developerConnection>
+        <connection>scm:git:https://github.com/jenkinsci/antexec-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/jenkinsci/antexec-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/antexec-plugin</url>
     </scm>
 
