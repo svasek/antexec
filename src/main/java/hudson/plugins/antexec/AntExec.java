@@ -212,9 +212,6 @@ public class AntExec extends Builder {
         //Create Ant build.xml file
         FilePath buildFile = makeBuildFile(scriptName, scriptSourceResolved, extendedScriptSourceResolved, build);
 
-        //Make archive copy of build file to job directory
-        //buildFile.copyTo(new FilePath(new File(build.getRootDir(), buildXml)));
-
         //Added build file to the command line
         args.add("-file", buildFile.getName());
         @SuppressWarnings("unchecked") VariableResolver<String> vr = build.getBuildVariableResolver();
@@ -222,10 +219,11 @@ public class AntExec extends Builder {
         //noinspection unchecked
 
         //Resolve the properties passed
+        args.addKeyValuePairs("-D",build.getBuildVariables(),sensitiveVars);
         args.addKeyValuePairsFromPropertyString("-D", properties, vr, sensitiveVars);
 
         if (ai != null)
-            env.put("ANT_HOME", ai.getHome());
+            ai.buildEnvVars(env);
         if (antOpts != null && antOpts.length() > 0 && !antOpts.equals("")) {
             env.put("ANT_OPTS", env.expand(antOpts));
         }
@@ -284,7 +282,8 @@ public class AntExec extends Builder {
                 //The plugin is a way to run an Ant Script from a small source code, we shoudn't keep the antexec_build.xml
                 if (keepBuildfile == null || !keepBuildfile) {
                     boolean deleteResponse = buildFile.delete();
-                    if (!deleteResponse) listener.getLogger().println("The temporary Ant Build Script coudn't be deleted");
+                    if (!deleteResponse)
+                        listener.getLogger().println("The temporary Ant Build Script coudn't be deleted");
                 }
             }
             return r == 0;
@@ -370,6 +369,8 @@ public class AntExec extends Builder {
         }
         sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
         sb.append("<project default=\"" + myScripName + "\" xmlns:antcontrib=\"antlib:net.sf.antcontrib\" basedir=\".\">\n\n");
+        sb.append("<!-- Make environment variables accesible via ${env.VARIABLE} by default -->\n");
+        sb.append("<property environment=\"env\"/>\n\n");
         sb.append("<target name=\"" + myScripName + "\">\n");
         sb.append("<!-- Default target entered in the first textarea - begin -->\n");
         sb.append(scriptSource);
