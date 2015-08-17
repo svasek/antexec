@@ -41,9 +41,12 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -185,12 +188,27 @@ public class AntExec extends Builder {
         ArgumentListBuilder args = new ArgumentListBuilder();
         String scriptSourceResolved = scriptSource;
         String extendedScriptSourceResolved = extendedScriptSource;
+
+        FilePath propertyFile = null;
+        if ((properties != null && properties.length() > 0 && !properties.equals("")) || (!build.getBuildVariables().isEmpty())) {
+            Properties myMergedProperties = new Properties();
+            // Add build properties
+            myMergedProperties.putAll(build.getBuildVariables());
+            // Add properties from text field "Properties" on job configuration screen
+            byte[] bytes = properties.getBytes("UTF-8");
+            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            InputStreamReader isr = new InputStreamReader(bais);
+            myMergedProperties.load(isr);
+            // Create property file
+            propertyFile = makePropertyFile(scriptName, build, myMergedProperties);
+        }
+
         try {
             //Resolve all the envirionment variables and properties before creating the build.xml
             scriptSourceResolved = TokenMacro.expandAll(build, listener, scriptSource);
             extendedScriptSourceResolved = TokenMacro.expandAll(build, listener, extendedScriptSource);
         } catch (MacroEvaluationException ex) {
-            Logger.getLogger(AntExec.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AntExec.class.getName()).log(Level.WARNING, null, ex);
         }
         EnvVars env = build.getEnvironment(listener);
         env.overrideAll(build.getBuildVariables());
@@ -219,8 +237,8 @@ public class AntExec extends Builder {
         //noinspection unchecked
 
         //Resolve the properties passed
-        args.addKeyValuePairs("-D",build.getBuildVariables(),sensitiveVars);
-        args.addKeyValuePairsFromPropertyString("-D", properties, vr, sensitiveVars);
+        //args.addKeyValuePairs("-D",build.getBuildVariables(),sensitiveVars);
+        //args.addKeyValuePairsFromPropertyString("-D", properties, vr, sensitiveVars);
 
         if (ai != null)
             ai.buildEnvVars(env);
@@ -229,13 +247,16 @@ public class AntExec extends Builder {
         }
 
         //Get and prepare ant-contrib.jar
+        FilePath antLibDir = null;
         if (noAntcontrib == null || !noAntcontrib) {
             //TODO: Replace this with better methot
             if (verbose != null && verbose) listener.getLogger().println(Messages.AntExec_UseAntContribTasks());
-            FilePath antContribJarOnMaster = new FilePath(Hudson.getInstance().getRootPath(), "plugins/antexec/META-INF/lib/ant-contrib.jar");
-            FilePath antLibDir = new FilePath(build.getWorkspace(), "antlib");
-            FilePath antContribJar = new FilePath(antLibDir, "ant-contrib.jar");
-            antContribJar.copyFrom(antContribJarOnMaster.toURI().toURL());
+            antLibDir = new FilePath(build.getWorkspace(), "antlib");
+            if (!antLibDir.exists()) {
+                FilePath antContribJar = new FilePath(antLibDir, "ant-contrib.jar");
+                FilePath antContribJarOnMaster = new FilePath(Hudson.getInstance().getRootPath(), "plugins/antexec/META-INF/lib/ant-contrib.jar");
+                antContribJar.copyFrom(antContribJarOnMaster.toURI().toURL());
+            }
             args.add("-lib", antLibDir.getName());
         } else {
             if (verbose != null && verbose) listener.getLogger().println(Messages.AntExec_UseAntCoreTasksOnly());
@@ -281,9 +302,17 @@ public class AntExec extends Builder {
                 //After the ant script has been executed, we delete the build.xml.
                 //The plugin is a way to run an Ant Script from a small source code, we shoudn't keep the antexec_build.xml
                 if (keepBuildfile == null || !keepBuildfile) {
-                    boolean deleteResponse = buildFile.delete();
-                    if (!deleteResponse)
+                    if (propertyFile != null && propertyFile.exists()) {
+                        boolean deleteResponse1 = propertyFile.delete();
+                        if (!deleteResponse1)
+                            listener.getLogger().println("The temporary property file coudn't be deleted");
+                    }
+                    boolean deleteResponse2 = buildFile.delete();
+                    if (!deleteResponse2)
                         listener.getLogger().println("The temporary Ant Build Script coudn't be deleted");
+
+                    //if (noAntcontrib == null || !noAntcontrib);
+                    //    antLibDir.deleteRecursive();
                 }
             }
             return r == 0;
@@ -361,17 +390,15 @@ public class AntExec extends Builder {
         }
     }
 
-    static String makeBuildFileXml(String scriptSource, String extendedScriptSource, String scriptName) {
+    static String makeBuildFileXml(String scriptSource, String extendedScriptSource, String myScriptName) {
         StringBuilder sb = new StringBuilder();
-        String myScripName = buildXml;
-        if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
-            myScripName = scriptName;
-        }
         sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-        sb.append("<project default=\"" + myScripName + "\" xmlns:antcontrib=\"antlib:net.sf.antcontrib\" basedir=\".\">\n\n");
+        sb.append("<project default=\"" + myScriptName + "\" xmlns:antcontrib=\"antlib:net.sf.antcontrib\" basedir=\".\">\n\n");
+        sb.append("<!-- Read additional properties -->\n");
+        sb.append("<property file=\"" + myScriptName + ".properties\"/>\n\n");
         sb.append("<!-- Make environment variables accesible via ${env.VARIABLE} by default -->\n");
         sb.append("<property environment=\"env\"/>\n\n");
-        sb.append("<target name=\"" + myScripName + "\">\n");
+        sb.append("<target name=\"" + myScriptName + "\">\n");
         sb.append("<!-- Default target entered in the first textarea - begin -->\n");
         sb.append(scriptSource);
         sb.append("\n<!-- Default target entered in the first textarea -  end  -->\n");
@@ -386,13 +413,25 @@ public class AntExec extends Builder {
     }
 
     static FilePath makeBuildFile(String scriptName, String targetSource, String extendedScriptSource, AbstractBuild build) throws IOException, InterruptedException {
-        String myScripName = buildXml;
+        String myScriptName = buildXml;
         if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
-            myScripName = scriptName;
+            myScriptName = scriptName;
         }
-        FilePath buildFile = new FilePath(build.getWorkspace(), myScripName);
-        buildFile.write(makeBuildFileXml(targetSource, extendedScriptSource, scriptName), null);
+        FilePath buildFile = new FilePath(build.getWorkspace(), myScriptName);
+        buildFile.write(makeBuildFileXml(targetSource, extendedScriptSource, myScriptName), null);
         return buildFile;
+    }
+
+    static FilePath makePropertyFile(String scriptName, AbstractBuild build, Properties buildProperties) throws IOException, InterruptedException {
+        String myScriptName = buildXml;
+        if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
+            myScriptName = scriptName;
+        }
+        FilePath propertyFile = new FilePath(build.getWorkspace(), myScriptName + ".properties");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        buildProperties.store(baos, "Stored by AntExec Jenkins plugin");
+        propertyFile.write(baos.toString(), null);
+        return propertyFile;
     }
 
 }
