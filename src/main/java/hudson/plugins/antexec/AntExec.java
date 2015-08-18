@@ -54,7 +54,6 @@ import java.util.logging.Logger;
 
 /**
  * Invokes the Apache Ant script entered on the hudson build configuration.
- * <p/>
  *
  * @author Milos Svasek
  */

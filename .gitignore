@@ -10,3 +10,4 @@ release.properties
 build_and_deploy.bat
 *.releaseBackup
 *.class
+*.hpi
