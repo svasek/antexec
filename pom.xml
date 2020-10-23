@@ -2,8 +2,10 @@
     <modelVersion>4.0.0</modelVersion>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.release>8</maven.compiler.release>
+        <java.level>8</java.level>
     </properties>
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
@@ -45,7 +47,7 @@
         <developerConnection>scm:git:https://github.com/jenkinsci/antexec-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/antexec-plugin</url>
       <tag>HEAD</tag>
-  </scm>
+    </scm>
 
     <dependencies>
         <dependency>
@@ -103,19 +105,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <!-- To check compatibility with Java 1.6 run: mvn compile animal-sniffer:check -->
-                <groupId>org.jvnet</groupId>
-                <artifactId>animal-sniffer</artifactId>
-                <version>1.2</version>
-                <configuration>
-                    <signature>
-                        <groupId>org.jvnet.animal-sniffer</groupId>
-                        <artifactId>java1.6</artifactId>
-                        <version>1.0</version>
-                    </signature>
-                </configuration>
-            </plugin>
-            <plugin>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
                     <goals>deploy</goals>
@@ -137,5 +126,3 @@
         </pluginRepository>
     </pluginRepositories>
 </project>  
-  
-

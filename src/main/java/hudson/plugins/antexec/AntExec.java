@@ -31,7 +31,6 @@ import hudson.tasks.Builder;
 import hudson.tasks._ant.AntConsoleAnnotator;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
-import hudson.util.VariableResolver;
 import org.jenkinsci.plugins.tokenmacro.MacroEvaluationException;
 import org.jenkinsci.plugins.tokenmacro.TokenMacro;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -40,7 +39,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
-
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
@@ -48,7 +46,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -196,7 +193,7 @@ public class AntExec extends Builder {
             // Add properties from text field "Properties" on job configuration screen
             byte[] bytes = properties.getBytes("UTF-8");
             ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-            InputStreamReader isr = new InputStreamReader(bais);
+            InputStreamReader isr = new InputStreamReader(bais, "UTF-8");
             myMergedProperties.load(isr);
             // Create property file
             propertyFile = makePropertyFile(scriptName, build, myMergedProperties);
@@ -216,28 +213,25 @@ public class AntExec extends Builder {
         if (ai == null) {
             args.add(launcher.isUnix() ? "ant" : "ant.bat");
         } else {
-            ai = ai.forNode(Computer.currentComputer().getNode(), listener);
+            Node node = Computer.currentComputer().getNode();
+            if (node == null) {
+                throw new AbortException("Cannot get installation for node, since it is not online");
+            }
+            ai = ai.forNode(node, listener);
             ai = ai.forEnvironment(env);
             String exe = ai.getExecutable(launcher);
             if (exe == null) {
-                return false;
+                throw new AbortException("Cannot find executable from the chosen Ant installation.");
             }
             args.add(exe);
         }
-
 
         //Create Ant build.xml file
         FilePath buildFile = makeBuildFile(scriptName, scriptSourceResolved, extendedScriptSourceResolved, build);
 
         //Added build file to the command line
         args.add("-file", buildFile.getName());
-        @SuppressWarnings("unchecked") VariableResolver<String> vr = build.getBuildVariableResolver();
-        @SuppressWarnings("unchecked") Set<String> sensitiveVars = build.getSensitiveBuildVariables();
-        //noinspection unchecked
-
-        //Resolve the properties passed
-        //args.addKeyValuePairs("-D",build.getBuildVariables(),sensitiveVars);
-        //args.addKeyValuePairsFromPropertyString("-D", properties, vr, sensitiveVars);
+        
 
         if (ai != null)
             ai.buildEnvVars(env);
@@ -248,9 +242,12 @@ public class AntExec extends Builder {
         //Get and prepare ant-contrib.jar
         FilePath antLibDir = null;
         if (noAntcontrib == null || !noAntcontrib) {
-            //TODO: Replace this with better methot
             if (verbose != null && verbose) listener.getLogger().println(Messages.AntExec_UseAntContribTasks());
-            antLibDir = new FilePath(build.getWorkspace(), "antlib");
+
+            FilePath ws = build.getWorkspace();
+            if (ws == null) throw new AbortException("Cannot get Workspace for node, since it is not online");
+
+            antLibDir = new FilePath(ws, "antlib");
             if (!antLibDir.exists()) {
                 FilePath antContribJar = new FilePath(antLibDir, "ant-contrib.jar");
                 FilePath antContribJarOnMaster = new FilePath(Hudson.getInstance().getRootPath(), "plugins/antexec/META-INF/lib/ant-contrib.jar");
@@ -318,14 +315,14 @@ public class AntExec extends Builder {
         } catch (IOException e) {
             Util.displayIOException(e, listener);
 
-            String errorMessage = hudson.tasks.Messages.Ant_ExecFailed();
+            String errorMessage = "command execution failed.";
             if (ai == null && (System.currentTimeMillis() - startTime) < 1000) {
                 if (getDescriptor().getInstallations() == null)
                     // looks like the user didn't configure any Ant installation
-                    errorMessage += hudson.tasks.Messages.Ant_GlobalConfigNeeded();
+                    errorMessage += " Maybe you need to configure where your Ant installations are?";
                 else
                     // There are Ant installations configured but the project didn't pick it
-                    errorMessage += hudson.tasks.Messages.Ant_ProjectConfigNeeded();
+                    errorMessage += " Maybe you need to configure the job to choose one of your Ant installations?";
             }
             e.printStackTrace(listener.fatalError(errorMessage));
             return false;
@@ -340,9 +337,6 @@ public class AntExec extends Builder {
     @SuppressWarnings("UnusedDeclaration")
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-
-        @CopyOnWrite
-        private volatile Ant.AntInstallation[] installations = new Ant.AntInstallation[0];
 
         @SuppressWarnings("UnusedDeclaration")
         public DescriptorImpl() {
@@ -360,7 +354,7 @@ public class AntExec extends Builder {
             String xmlContent = makeBuildFileXml("", value, "test_script");
             try {
                 XMLReader reader = XMLReaderFactory.createXMLReader();
-                reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes())));
+                reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes("UTF-8"))));
                 return FormValidation.ok();
             } catch (SAXException sax) {
                 return FormValidation.error("ERROR: " + sax.getLocalizedMessage());
@@ -372,7 +366,7 @@ public class AntExec extends Builder {
             String xmlContent = makeBuildFileXml(value, "", "test_script");
             try {
                 XMLReader reader = XMLReaderFactory.createXMLReader();
-                reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes())));
+                reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes("UTF-8"))));
                 return FormValidation.ok();
             } catch (SAXException sax) {
                 return FormValidation.error("ERROR: " + sax.getLocalizedMessage());
@@ -416,7 +410,11 @@ public class AntExec extends Builder {
         if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
             myScriptName = scriptName;
         }
-        FilePath buildFile = new FilePath(build.getWorkspace(), myScriptName);
+
+        FilePath ws = build.getWorkspace();
+        if (ws == null) throw new AbortException("Cannot get Workspace for node, since it is not online");
+        FilePath buildFile = new FilePath(ws, myScriptName);
+
         buildFile.write(makeBuildFileXml(targetSource, extendedScriptSource, myScriptName), null);
         return buildFile;
     }
@@ -426,10 +424,14 @@ public class AntExec extends Builder {
         if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
             myScriptName = scriptName;
         }
-        FilePath propertyFile = new FilePath(build.getWorkspace(), myScriptName + ".properties");
+
+        FilePath ws = build.getWorkspace();
+        if (ws == null) throw new AbortException("Cannot get Workspace for node, since it is not online");
+        FilePath propertyFile = new FilePath(ws, myScriptName + ".properties");
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         buildProperties.store(baos, "Stored by AntExec Jenkins plugin");
-        propertyFile.write(baos.toString(), null);
+        propertyFile.write(baos.toString("UTF-8"), "UTF-8");
         return propertyFile;
     }
 
