@@ -1,2 +1,6 @@
 _extends: .github
 tag-template: antexec-$NEXT_MINOR_VERSION
+template: |
+  ## What’s Changed
+
+  $CHANGES
