@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <properties>
         <revision>1.12</revision>
-        <changelist>SNAPSHOT</changelist>
+        <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/antexec-plugin</gitHubRepo>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jenkins.version>2.289.1</jenkins.version>
@@ -18,7 +18,7 @@
     </parent>
 
     <artifactId>antexec</artifactId>
-    <version>${revision}-${changelist}</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
     <name>AntExec</name>
     <description>Adds new build step for running directly written Apache Ant code</description>
