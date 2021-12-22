@@ -2,13 +2,14 @@
     <modelVersion>4.0.0</modelVersion>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <java.level>8</java.level>
     </properties>
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.4</version>
+        <version>4.31</version>
     </parent>
 
     <artifactId>antexec</artifactId>
@@ -45,18 +46,18 @@
         <developerConnection>scm:git:https://github.com/jenkinsci/antexec-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/antexec-plugin</url>
       <tag>HEAD</tag>
-  </scm>
+    </scm>
 
     <dependencies>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>ant</artifactId>
-            <version>1.11</version>
+            <version>1.13</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>token-macro</artifactId>
-            <version>2.12</version>
+            <version>267.vcdaea6462991</version>
         </dependency>
     </dependencies>
 
@@ -103,19 +104,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <!-- To check compatibility with Java 1.6 run: mvn compile animal-sniffer:check -->
-                <groupId>org.jvnet</groupId>
-                <artifactId>animal-sniffer</artifactId>
-                <version>1.2</version>
-                <configuration>
-                    <signature>
-                        <groupId>org.jvnet.animal-sniffer</groupId>
-                        <artifactId>java1.6</artifactId>
-                        <version>1.0</version>
-                    </signature>
-                </configuration>
-            </plugin>
-            <plugin>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
                     <goals>deploy</goals>
@@ -137,5 +125,3 @@
         </pluginRepository>
     </pluginRepositories>
 </project>  
-  
-
