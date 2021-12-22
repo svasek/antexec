@@ -1,7 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <properties>
+        <revision>1.12</revision>
+        <changelist>SNAPSHOT</changelist>
+        <gitHubRepo>jenkinsci/antexec-plugin</gitHubRepo>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jenkins.version>2.289.1</jenkins.version>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <java.level>8</java.level>
@@ -10,20 +14,21 @@
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
         <version>4.32</version>
+        <relativePath />
     </parent>
 
     <artifactId>antexec</artifactId>
-    <version>1.12-SNAPSHOT</version>
+    <version>${revision}-${changelist}</version>
     <packaging>hpi</packaging>
     <name>AntExec</name>
     <description>Adds new build step for running directly written Apache Ant code</description>
-    <url>https://wiki.jenkins-ci.org/display/JENKINS/AntExec+plugin</url>
+    <url>https://github.com/jenkinsci/antexec-plugin</url>
 
     <developers>
         <developer>
             <id>svasek</id>
             <name>Milos Svasek</name>
-            <email>svasek@gmail.com</email>
+            <email>Milos@Svasek.net</email>
             <timezone>+1</timezone>
             <roles>
                 <role>Project Owner</role>
@@ -42,13 +47,33 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:https://github.com/jenkinsci/antexec-plugin.git</connection>
-        <developerConnection>scm:git:https://github.com/jenkinsci/antexec-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/antexec-plugin</url>
-      <tag>HEAD</tag>
+        <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
+        <developerConnection>scm:git:https://github.com/${gitHubRepo}.git</developerConnection>
+        <url>https://github.com/${gitHubRepo}</url>
+      <tag>${scmTag}</tag>
     </scm>
 
     <dependencies>
+        <dependency>
+            <groupId>io.jenkins.tools.bom</groupId>
+            <artifactId>bom-2.289.x</artifactId>
+            <version>1055.v9637a690f734</version>
+            <scope>compile</scope>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci</groupId>
+            <artifactId>symbol-annotation</artifactId>
+            <version>1.23</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.tools</groupId>
+            <artifactId>maven-hpi-plugin</artifactId>
+            <version>3.22</version>
+            <scope>compile</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>ant</artifactId>
