@@ -30,10 +30,6 @@
             <name>Milos Svasek</name>
             <email>Milos@Svasek.net</email>
             <timezone>+1</timezone>
-            <roles>
-                <role>Project Owner</role>
-                <role>Project Lead Developer</role>
-            </roles>
         </developer>
     </developers>
 
@@ -65,12 +61,6 @@
             <groupId>org.jenkins-ci</groupId>
             <artifactId>symbol-annotation</artifactId>
             <version>1.23</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.tools</groupId>
-            <artifactId>maven-hpi-plugin</artifactId>
-            <version>3.22</version>
             <scope>compile</scope>
         </dependency>
 
@@ -132,6 +122,14 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
                     <goals>deploy</goals>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>true</skipTests>
+                    <testFailureIgnore>true</testFailureIgnore>
                 </configuration>
             </plugin>
         </plugins>
