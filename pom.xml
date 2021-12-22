@@ -64,18 +64,15 @@
         <dependency>
             <groupId>org.jenkins-ci</groupId>
             <artifactId>symbol-annotation</artifactId>
-            <!-- <version>1.23</version> -->
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>ant</artifactId>
-            <!-- <version>1.13</version> -->
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>token-macro</artifactId>
-            <!-- <version>267.vcdaea6462991</version> -->
         </dependency>
     </dependencies>
 
