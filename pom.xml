@@ -49,30 +49,33 @@
       <tag>${scmTag}</tag>
     </scm>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.jenkins.tools.bom</groupId>
+                <artifactId>bom-2.289.x</artifactId>
+                <version>1055.v9637a690f734</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>io.jenkins.tools.bom</groupId>
-            <artifactId>bom-2.289.x</artifactId>
-            <version>1055.v9637a690f734</version>
-            <scope>compile</scope>
-            <type>pom</type>
-        </dependency>
         <dependency>
             <groupId>org.jenkins-ci</groupId>
             <artifactId>symbol-annotation</artifactId>
-            <version>1.23</version>
+            <!-- <version>1.23</version> -->
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>ant</artifactId>
-            <version>1.13</version>
+            <!-- <version>1.13</version> -->
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>token-macro</artifactId>
-            <version>267.vcdaea6462991</version>
+            <!-- <version>267.vcdaea6462991</version> -->
         </dependency>
     </dependencies>
 
