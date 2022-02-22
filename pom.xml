@@ -7,13 +7,11 @@
         <version>4.35</version>
         <relativePath />
     </parent>
-    <groupId>io.jenkins.plugins</groupId>
     <artifactId>antexec</artifactId>
-    <version>${revision}${changelist}</version>
+    <version>${changelist}</version>
     <packaging>hpi</packaging>
     <properties>
-        <revision>1.12</revision>
-        <changelist>-SNAPSHOT</changelist>
+        <changelist>999999-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jenkins.version>2.289.1</jenkins.version>
@@ -38,7 +36,7 @@
         <license>
             <name>The MIT license</name>
             <comments>All source code is under the MIT license.</comments>
-            <url>https://opensource.org/licenses/MITp</url>
+            <url>https://opensource.org/licenses/MIT</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
