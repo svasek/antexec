@@ -14,7 +14,7 @@
         <changelist>999999-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jenkins.version>2.289.1</jenkins.version>
+        <jenkins.version>2.319.3</jenkins.version>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <java.level>8</java.level>
@@ -53,7 +53,7 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-2.319.x</artifactId>
-                <version>1289.v5c4b_1c43511b_</version>
+                <version>1342.v729ca_3818e88</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
