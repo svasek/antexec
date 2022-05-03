@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.35</version>
+        <version>4.40</version>
         <relativePath />
     </parent>
     <artifactId>antexec</artifactId>
@@ -14,7 +14,7 @@
         <changelist>999999-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jenkins.version>2.289.1</jenkins.version>
+        <jenkins.version>2.319.3</jenkins.version>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <java.level>8</java.level>
@@ -52,8 +52,8 @@
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.289.x</artifactId>
-                <version>1055.v9637a690f734</version>
+                <artifactId>bom-2.319.x</artifactId>
+                <version>1342.v729ca_3818e88</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -61,11 +61,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>org.jenkins-ci</groupId>
-            <artifactId>symbol-annotation</artifactId>
-            <scope>compile</scope>
-        </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>ant</artifactId>
