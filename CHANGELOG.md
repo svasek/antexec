@@ -1,7 +1,8 @@
 # Changelog
 
 ### Newer versions
-See [GitHub releases](https://github.com/jenkinsci/antexec-plugin/releases)
+See [Release page at Jenkins Plugin Index](https://plugins.jenkins.io/antexec/releases/)
+
 
 ### 1.11
 Release date: _2015-08-18_

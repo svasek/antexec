@@ -54,4 +54,4 @@ The problem is that parameters are passed verbatim to the command line, and if t
 ![](docs/images/06.Example2-Validation.png)
 
 
-For release history, please see [changelog](CHANGELOG.md).
+For release history, please see [release page](https://plugins.jenkins.io/antexec/releases/).
