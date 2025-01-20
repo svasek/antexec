@@ -7,15 +7,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out
+      # https://github.com/actions/checkout
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: Set up JDK 8
+      
+    - name: Set up JDK
+      # https://github.com/actions/setup-java
       uses: actions/setup-java@v4
       with:
-        distribution: 'adopt'
-        java-version: 8
+        distribution: "temurin"
+        java-version: "17"
+
     - name: Release
+      # https://github.com/jenkins-infra/jenkins-maven-cd-action
       uses: jenkins-infra/jenkins-maven-cd-action@v1
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
