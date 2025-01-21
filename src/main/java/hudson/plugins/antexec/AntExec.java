@@ -31,6 +31,8 @@ import hudson.tasks.Builder;
 import hudson.tasks._ant.AntConsoleAnnotator;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
+
 import org.jenkinsci.plugins.tokenmacro.MacroEvaluationException;
 import org.jenkinsci.plugins.tokenmacro.TokenMacro;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -38,7 +40,8 @@ import org.kohsuke.stapler.QueryParameter;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
@@ -180,7 +183,7 @@ public class AntExec extends Builder {
     }
 
     @Override
-    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
         String scriptSourceResolved = scriptSource;
         String extendedScriptSourceResolved = extendedScriptSource;
@@ -250,7 +253,7 @@ public class AntExec extends Builder {
             antLibDir = new FilePath(ws, "antlib");
             if (!antLibDir.exists()) {
                 FilePath antContribJar = new FilePath(antLibDir, "ant-contrib.jar");
-                FilePath antContribJarOnMaster = new FilePath(Hudson.getInstance().getRootPath(), "plugins/antexec/META-INF/lib/ant-contrib.jar");
+                FilePath antContribJarOnMaster = new FilePath(Jenkins.get().getRootPath(), "plugins/antexec/META-INF/lib/ant-contrib.jar");
                 antContribJar.copyFrom(antContribJarOnMaster.toURI().toURL());
             }
             args.add("-lib", antLibDir.getName());
@@ -346,14 +349,15 @@ public class AntExec extends Builder {
 
         // for compatibility reasons, the persistence is done by Ant.DescriptorImpl
         public Ant.AntInstallation[] getInstallations() {
-            return Hudson.getInstance().getDescriptorByType(Ant.DescriptorImpl.class).getInstallations();
+            return Jenkins.get().getDescriptorByType(Ant.DescriptorImpl.class).getInstallations();
         }
 
         //Check if entered script source is wellformed xml document
-        public FormValidation doCheckScriptSource(@QueryParameter String value) throws IOException {
+        public FormValidation doCheckScriptSource(@QueryParameter String value) throws IOException, ParserConfigurationException, SAXException {
             String xmlContent = makeBuildFileXml("", value, "test_script");
             try {
-                XMLReader reader = XMLReaderFactory.createXMLReader();
+                SAXParserFactory factory = SAXParserFactory.newInstance();
+                XMLReader reader = factory.newSAXParser().getXMLReader();
                 reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes("UTF-8"))));
                 return FormValidation.ok();
             } catch (SAXException sax) {
@@ -362,10 +366,12 @@ public class AntExec extends Builder {
         }
 
         //Check if entered extended script source is wellformed xml document
-        private FormValidation doCheckExtendedScriptSource(@QueryParameter String value) throws IOException {
+        @SuppressWarnings("unused")
+        private FormValidation doCheckExtendedScriptSource(@QueryParameter String value) throws IOException, ParserConfigurationException {
             String xmlContent = makeBuildFileXml(value, "", "test_script");
             try {
-                XMLReader reader = XMLReaderFactory.createXMLReader();
+                SAXParserFactory factory = SAXParserFactory.newInstance();
+                XMLReader reader = factory.newSAXParser().getXMLReader();
                 reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes("UTF-8"))));
                 return FormValidation.ok();
             } catch (SAXException sax) {
@@ -373,6 +379,7 @@ public class AntExec extends Builder {
             }
         }
 
+        @SuppressWarnings("rawtypes")
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             // indicates that this builder can be used with all kinds of project types
             return true;
@@ -405,7 +412,7 @@ public class AntExec extends Builder {
         return sb.toString();
     }
 
-    static FilePath makeBuildFile(String scriptName, String targetSource, String extendedScriptSource, AbstractBuild build) throws IOException, InterruptedException {
+    static FilePath makeBuildFile(String scriptName, String targetSource, String extendedScriptSource, AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         String myScriptName = buildXml;
         if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
             myScriptName = scriptName;
@@ -419,7 +426,7 @@ public class AntExec extends Builder {
         return buildFile;
     }
 
-    static FilePath makePropertyFile(String scriptName, AbstractBuild build, Properties buildProperties) throws IOException, InterruptedException {
+    static FilePath makePropertyFile(String scriptName, AbstractBuild<?, ?> build, Properties buildProperties) throws IOException, InterruptedException {
         String myScriptName = buildXml;
         if (scriptName != null && scriptName.length() > 0 && !scriptName.equals("")) {
             myScriptName = scriptName;
