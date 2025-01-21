@@ -357,6 +357,9 @@ public class AntExec extends Builder {
             String xmlContent = makeBuildFileXml("", value, "test_script");
             try {
                 SAXParserFactory factory = SAXParserFactory.newInstance();
+                factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
                 XMLReader reader = factory.newSAXParser().getXMLReader();
                 reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes("UTF-8"))));
                 return FormValidation.ok();
@@ -371,6 +374,9 @@ public class AntExec extends Builder {
             String xmlContent = makeBuildFileXml(value, "", "test_script");
             try {
                 SAXParserFactory factory = SAXParserFactory.newInstance();
+                factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
                 XMLReader reader = factory.newSAXParser().getXMLReader();
                 reader.parse(new InputSource(new ByteArrayInputStream(xmlContent.getBytes("UTF-8"))));
                 return FormValidation.ok();
